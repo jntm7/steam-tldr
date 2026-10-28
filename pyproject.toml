@@ -1,0 +1,16 @@
+[project]
+name = "steam-tldr"
+version = "0.1.0"
+requires-python = ">=3.13"
+dependencies = [
+    "matplotlib>=3.11.2",
+    "pandas>=3.1.0",
+    "pyarrow>=26.0.0",
+    "requests>=2.34.2",
+    "scikit-learn>=1.9.1",
+]
+
+[dependency-groups]
+dev = [
+    "jupyter>=1.1.1",
+]
