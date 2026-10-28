@@ -6,3 +6,4 @@ __pycache__/
 # cached review data
 data/*
 !data/.gitkeep
+__marimo__/
