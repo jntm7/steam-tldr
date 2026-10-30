@@ -29,6 +29,9 @@ SAME_SCORE_POINTS = 3
 SHOWN_REVIEW_MIN_WORDS = 15
 SHOWN_REVIEW_MAX_WORDS = 250
 
+# Slurs and self-harm taunts kept out of quotes and shown reviews, so they never reach the site
+BLOCKED_WORDS = re.compile(r"\b(?:n[i1]gg(?:er|a)s?|f[a4]gg?(?:ot)?s?|retard(?:s|ed)?|trann(?:y|ies)|kys|kill yourself)\b", re.IGNORECASE)
+
 # Strip trademark symbols from Steam's game name
 def display_name(meta: dict, appid: int) -> str:
     name = meta.get("name") or f"App {appid}"
@@ -81,7 +84,8 @@ def playtime_split(meta: dict) -> pd.DataFrame:
 
 # Pick a short, clear example clause for a theme, preferring ones whose review agrees
 def example_clause(mentions: pd.DataFrame, theme: str, praise: bool, used: set) -> str | None:
-    rows = mentions[(mentions["theme"] == theme) & (mentions["positive"] == praise) & ~mentions["clause"].isin(used)]
+    rows = mentions[(mentions["theme"] == theme) & (mentions["positive"] == praise) & ~mentions["clause"].isin(used)
+                    & ~mentions["clause"].str.contains(BLOCKED_WORDS)]
     words = rows["clause"].str.split().str.len()
     rows = rows[(words >= 6) & (words <= 25)]
     if rows.empty:
@@ -110,7 +114,7 @@ def recent_complaints(df: pd.DataFrame, recent: pd.Series, model) -> pd.DataFram
     themes, mentions = summarize_themes(reviews, model, recent["positive"] / recent["reviews"])
     return top_themes(themes, mentions, praise=False, count=RECENT_THEMES)
 
-# Reviews short enough to show whole, with Steam's formatting tags removed
+# Reviews short enough to show whole and free of blocked words, with Steam's formatting tags removed
 def readable_reviews(reviews: pd.DataFrame) -> pd.DataFrame:
     text = (reviews["review"]
             .str.replace(r"\[/?[a-z0-9*]+(?:=[^\]]*)?\]", " ", regex=True, flags=re.IGNORECASE)
@@ -119,7 +123,7 @@ def readable_reviews(reviews: pd.DataFrame) -> pd.DataFrame:
             .str.replace(r"\n{3,}", "\n\n", regex=True)
             .str.strip())
     words = text.str.split().str.len()
-    keep = (words >= SHOWN_REVIEW_MIN_WORDS) & (words <= SHOWN_REVIEW_MAX_WORDS)
+    keep = (words >= SHOWN_REVIEW_MIN_WORDS) & (words <= SHOWN_REVIEW_MAX_WORDS) & ~text.str.contains(BLOCKED_WORDS)
     columns = ["review", "voted_up", "playtime_at_review_h", "created"]
     return reviews.assign(review=text)[keep][columns].reset_index(drop=True)
 
