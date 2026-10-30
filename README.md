@@ -2,7 +2,7 @@
 
 Explore why players like or dislike a Steam game, not just its score.
 
-SteamTLDR is a personal learning project built to practice hands-on machine learning. Portions of the codebase are written with AI assistance from Claude Opus 5.5 with the intention of developing a learning exercise rather than a polished product.
+SteamTLDR is a personal learning project built to practice hands-on machine learning. Portions of the project contain AI assisted code written by Claude Opus 5.5 with the intention of developing a learning exercise rather than a complete and polished product.
 
 <img width="3840" height="1865" alt="SteamTLDR - Home" src="https://github.com/user-attachments/assets/890e5aa3-9ada-4750-8478-5a30fe1bc55d" />
 
@@ -137,7 +137,12 @@ Open one with:
 uv run marimo edit notebooks/01_explore.py
 ```
 
-The notebooks read the raw review data, which isn't included in the repo. Fetch it first with `uv run python src/games.py` (this calls Steam's API for all 60 games and takes a while), then train the model with `uv run python src/model.py`. Notebook 06 also needs `uv sync --group transformer`.
+The notebooks read the raw review data, which isn't included in the repo. There are two options:
+
+- fetch it with `uv run python src/fetch.py <appid>` (this fetches individual games with their Steam app ID).
+- fetch it with `uv run python src/games.py` (this calls Steam's API for all 60 games and takes a long time)
+
+Then train the model with `uv run python src/model.py`. Notebook 06 also needs `uv sync --group transformer`.
 
 ## Data and Attribution
 
