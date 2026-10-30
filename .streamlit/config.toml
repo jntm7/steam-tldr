@@ -1,0 +1,9 @@
+[client]
+toolbarMode = "minimal"
+
+# Set per mode: a plain [theme] section makes one custom theme and disables light/dark switching
+[theme.light]
+primaryColor = "#3d8fd1"
+
+[theme.dark]
+primaryColor = "#3d8fd1"
