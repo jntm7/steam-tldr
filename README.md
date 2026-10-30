@@ -1,10 +1,12 @@
 # SteamTLDR
 
-Explore why players like or dislike a Steam game, not just its score.
+![SteamTLDR](https://github.com/user-attachments/assets/34b9dec6-3151-4632-8d2e-512c793ecd16)
 
-SteamTLDR is a personal learning project built to practice hands-on machine learning. Portions of the project contain AI assisted code written by Claude Opus 5.5 with the intention of developing a learning exercise rather than a complete and polished product.
+SteamTLDR is a personal project built to get hands-on practice with machine learning and sentiment analysis.
 
-<img width="3840" height="1865" alt="SteamTLDR - Home" src="https://github.com/user-attachments/assets/890e5aa3-9ada-4750-8478-5a30fe1bc55d" />
+> Portions of the project contain AI-assisted code. It is a learning exercise rather than a complete product.
+
+![SteamTLDR Home](https://github.com/user-attachments/assets/890e5aa3-9ada-4750-8478-5a30fe1bc55d)
 
 ## Features
 
@@ -16,7 +18,7 @@ Metrics including all-time percent positive, Steam's rating, and the last 30 day
 
 Compare the most praised and most complained-about themes (performance, price, story, cheaters and more), each with an example quote from a real review.
 
-<img width="3840" height="1865" alt="SteamTLDR - Overview" src="https://github.com/user-attachments/assets/2e66ed7c-6e3e-481d-915d-63cd88ed4920" />
+![SteamTLDR Overview](https://github.com/user-attachments/assets/2e66ed7c-6e3e-481d-915d-63cd88ed4920)
 
 ### Recent sentiment
 
@@ -26,7 +28,7 @@ View what players have been unhappy about in the last 30 days, to spot new probl
 
 Monthly percent positive and review counts for a game's whole history.
 
-<img width="3840" height="1865" alt="SteamTLDR - Graph" src="https://github.com/user-attachments/assets/0a634650-4eeb-4528-a675-71216964bfd4" />
+![SteamTLDR Graph](https://github.com/user-attachments/assets/0a634650-4eeb-4528-a675-71216964bfd4)
 
 ### Playtime analysis
 
@@ -42,7 +44,7 @@ Read a random positive or negative review in full, fetched directly from Steam's
 
 ### Growing game library dataset
 
-<img width="3840" height="1865" alt="SteamTLDR - Games" src="https://github.com/user-attachments/assets/1db6f561-cb9f-43bd-ae50-782d1aa84f9f" />
+![SteamTLDR Game Library](https://github.com/user-attachments/assets/1db6f561-cb9f-43bd-ae50-782d1aa84f9f)
 
 ## Methodology
 
