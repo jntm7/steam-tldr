@@ -8,6 +8,8 @@ from pathlib import Path
 
 # API and fetch settings
 API_URL = "https://api.steampowered.com/IUserReviewsService/GetAppReviews/v1/"
+APP_DETAILS_URL = "https://store.steampowered.com/api/appdetails"
+LIBRARY_IMAGE_URL = "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/{}/library_600x900.jpg"
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 CACHE_DAYS = 30
 SLEEP_SECONDS = 1.0
@@ -20,6 +22,9 @@ RECENT_WINDOWS = 4
 RECENT_REVIEWS = 1000
 HISTORY_REVIEWS = 4000
 MAX_PER_MONTH = 500
+
+# Playtime groups as (min hours, max hours), where 0 max means no limit
+PLAYTIME_BUCKETS = {"<2h": (0, 2), "2-10h": (2, 10), "10-50h": (10, 50), "50h+": (50, 0)}
 
 # Shared query filters
 BASE_PARAMS = {"purchase_type": 1, "filter": 0, "day_range": 0}
@@ -132,6 +137,35 @@ def fetch_windows(appid: int, sample: str, windows: list, per_window: int) -> tu
             print(f"  {sample}: {i}/{len(windows)} windows")
     return frames, periods
 
+# Look up a game's name, header image, developers, publishers, release date and genres on the Steam store
+def fetch_app_details(appid: int) -> dict:
+    params = {"appids": appid, "filters": "basic,developers,publishers,release_date,genres"}
+    response = requests.get(APP_DETAILS_URL, params=params, timeout=30)
+    time.sleep(SLEEP_SECONDS)
+    details = response.json().get(str(appid), {}) if response.ok else {}
+    data = details.get("data", {}) if details.get("success") else {}
+    return {
+        "name": data.get("name"),
+        "header_image": data.get("header_image"),
+        "developers": data.get("developers", []),
+        "publishers": data.get("publishers", []),
+        "release_date": data.get("release_date", {}).get("date") or None,
+        "genres": [genre["description"] for genre in data.get("genres", [])],
+    }
+
+# Portrait library cover, if Steam has one at the usual link
+def fetch_library_image(appid: int) -> str | None:
+    url = LIBRARY_IMAGE_URL.format(appid)
+    return url if requests.head(url, timeout=30).ok else None
+
+# Fetch Steam's exact review totals for each playtime group
+def fetch_playtime(appid: int) -> dict:
+    totals = {}
+    for group, (low, high) in PLAYTIME_BUCKETS.items():
+        _, summary = fetch_reviews(appid, 1, playtime_min_hours=low, playtime_max_hours=high)
+        totals[group] = {"positive": summary.get("total_positive", 0), "negative": summary.get("total_negative", 0)}
+    return totals
+
 # Fetch helpful, recent, and monthly samples for one game
 def fetch_game(appid: int) -> tuple[pd.DataFrame, dict]:
     now = pd.Timestamp.now(tz="UTC")
@@ -149,7 +183,13 @@ def fetch_game(appid: int) -> tuple[pd.DataFrame, dict]:
     monthly_frames, monthly_periods = fetch_windows(appid, "monthly", months, per_month)
 
     df = pd.concat([helpful_df, *recent_frames, *monthly_frames], ignore_index=True)
-    return df, {"summary": summary, "periods": recent_periods + monthly_periods}
+    return df, {
+        **fetch_app_details(appid),
+        "library_image": fetch_library_image(appid),
+        "summary": summary,
+        "periods": recent_periods + monthly_periods,
+        "playtime": fetch_playtime(appid),
+    }
 
 # Build cache file paths
 def cache_paths(appid: int) -> tuple[Path, Path]:
@@ -171,6 +211,16 @@ def load_reviews(appid: int, refresh: bool = False) -> tuple[pd.DataFrame, dict]
     if not refresh and data_path.exists() and cache_is_fresh(meta_path):
         meta = json.loads(meta_path.read_text())
         print(f"  using cache from {meta['fetched_at'][:10]}")
+        missing = {}
+        if any(key not in meta for key in ("name", "header_image", "developers", "publishers", "release_date", "genres")):
+            missing.update(fetch_app_details(appid))
+        if "library_image" not in meta:
+            missing["library_image"] = fetch_library_image(appid)
+        if "playtime" not in meta:
+            missing["playtime"] = fetch_playtime(appid)
+        if missing:
+            meta = {**meta, **missing}
+            meta_path.write_text(json.dumps(meta, indent=2))
         return pd.read_parquet(data_path), meta
 
     df, meta = fetch_game(appid)
@@ -182,6 +232,11 @@ def load_reviews(appid: int, refresh: bool = False) -> tuple[pd.DataFrame, dict]
     meta = {"appid": appid, "fetched_at": datetime.now(timezone.utc).isoformat(), **meta}
     meta_path.write_text(json.dumps(meta, indent=2))
     return df, meta
+
+# Stored details of every cached game
+def cached_games() -> list[dict]:
+    return [{**json.loads(path.read_text()), "appid": int(path.stem)}
+            for path in DATA_DIR.glob("*.json") if path.stem.isdigit()]
 
 # Fetch one game and print a summary
 def main() -> None:
