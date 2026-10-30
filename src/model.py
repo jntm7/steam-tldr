@@ -1,17 +1,20 @@
+import joblib
 import pandas as pd
 from fetch import DATA_DIR
 from games import GAMES
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import classification_report
 from sklearn.pipeline import Pipeline
 
 # Provisional cleaning thresholds until the exploration decisions are made
 MIN_WORDS = 5
 MIN_LETTER_RATIO = 0.5
 
-# Held-out test games and random seed
+# Held-out test games, random seed, and saved model location
 TEST_GAMES = [553850, 949230, 1030300]
 RANDOM_SEED = 42
+MODEL_PATH = DATA_DIR / "sentiment.joblib"
 
 # Load every cached game into one table, one row per review
 def load_dataset() -> pd.DataFrame:
@@ -40,3 +43,25 @@ def build_model() -> Pipeline:
         ("tfidf", TfidfVectorizer(ngram_range=(1, 2), min_df=5)),
         ("logreg", LogisticRegression(class_weight="balanced", max_iter=1000, random_state=RANDOM_SEED)),
     ])
+
+# Load the saved model
+def load_model() -> Pipeline:
+    if not MODEL_PATH.exists():
+        raise FileNotFoundError(f"No saved model at {MODEL_PATH}. Run: uv run python src/model.py")
+    return joblib.load(MODEL_PATH)
+
+# Evaluate on held-out games, then retrain on every game and save
+def main() -> None:
+    reviews = clean(load_dataset())
+    train, test = split_by_game(reviews)
+    print(f"Training on {len(train):,} reviews, testing on {len(test):,} from {', '.join(sorted(test['game'].unique()))}")
+    model = build_model().fit(train["review"], train["voted_up"])
+    print(classification_report(test["voted_up"], model.predict(test["review"]), target_names=["negative", "positive"], digits=3))
+
+    final = build_model().fit(reviews["review"], reviews["voted_up"])
+    joblib.dump(final, MODEL_PATH)
+    print(f"Saved model trained on all {len(reviews):,} reviews from {reviews['game'].nunique()} games to {MODEL_PATH}")
+
+# Entry point
+if __name__ == "__main__":
+    main()
