@@ -62,10 +62,10 @@ On three games that it never saw during training, across 14,517 reviews:
 
 | Metric | Score |
 |---|---|
-| Accuracy | 90.9% |
-| Precision (negative reviews) | 0.88 |
-| Recall (negative reviews) | 0.92 |
-| F1 (negative reviews) | 0.90 |
+| Accuracy | 91.3% |
+| Precision (negative reviews) | 0.889 |
+| Recall (negative reviews) | 0.915 |
+| F1 (negative reviews) | 0.902 |
 
 ### Transformer comparison
 
@@ -83,7 +83,7 @@ DistilBERT was trained on movie reviews, so gamer slang like "feet first into he
 
 ### Outliers
 
-- 43 events (32 negative surges, 11 score drops) across 23 of the 60 games.
+- 54 events (42 negative surges, 12 score drops) across 32 of the 100 games.
 - this includes controversies such as Helldivers 2's PlayStation Network backlash in May 2024.
 
 ## Known Limitations
@@ -108,7 +108,7 @@ steam-tldr/
 │   └── 06_transformers.py      # baseline vs DistilBERT
 ├── src/
 │   ├── fetch.py      # Steam API calls with caching and rate limiting
-│   ├── games.py      # the 60 games
+│   ├── games.py      # the 100 games
 │   ├── model.py      # sentiment model training and evaluation
 │   ├── themes.py     # theme matching and scoring
 │   ├── summarize.py  # builds each game's summary and flags outliers
@@ -142,7 +142,7 @@ uv run marimo edit notebooks/01_explore.py
 The notebooks read the raw review data, which isn't included in the repo. There are two options:
 
 - fetch it with `uv run python src/fetch.py <appid>` (this fetches individual games with their Steam app ID).
-- fetch it with `uv run python src/games.py` (this calls Steam's API for all 60 games and takes a long time)
+- fetch it with `uv run python src/games.py` (this calls Steam's API for all 100 games and takes a long time)
 
 Then train the model with `uv run python src/model.py`. Notebook 06 also needs `uv sync --group transformer`.
 
