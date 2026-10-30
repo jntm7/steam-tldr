@@ -1,12 +1,18 @@
 # SteamTLDR
 
 ![SteamTLDR](https://github.com/user-attachments/assets/34b9dec6-3151-4632-8d2e-512c793ecd16)
+![License](https://img.shields.io/github/license/jntm7/steam-tldr)
+![Python](https://img.shields.io/badge/Python-3.14-3776AB?logo=python&logoColor=white)
+![Streamlit](https://img.shields.io/badge/Streamlit-app-FF4B4B?logo=streamlit&logoColor=white)
+![scikit-learn](https://img.shields.io/badge/scikit--learn-ML-F7931E?logo=scikitlearn&logoColor=white)
+![pandas](https://img.shields.io/badge/pandas-data-150458?logo=pandas&logoColor=white)
+[![Live demo](https://img.shields.io/badge/Live_demo-steamtldr.streamlit.app-FF4B4B?logo=streamlit&logoColor=white)](https://steamtldr.streamlit.app)
 
 SteamTLDR is a personal project built to get hands-on practice with machine learning and sentiment analysis.
 
 > Portions of the project contain AI-assisted code. It is a learning exercise rather than a complete product.
 
-![SteamTLDR Home](https://github.com/user-attachments/assets/890e5aa3-9ada-4750-8478-5a30fe1bc55d)
+![SteamTLDR Home](https://github.com/user-attachments/assets/58e2b5fd-586a-4530-bdb8-1cc0515393c4)
 
 ## Features
 
@@ -16,7 +22,11 @@ Metrics including all-time percent positive, Steam's rating, and the last 30 day
 
 ### The Good & The Bad
 
-Compare the most praised and most complained-about themes (performance, price, story, cheaters and more), each with an example quote from a real review.
+Compare the most praised and most complained-about themes, each with an example quote from a real review.
+
+> Common praises: gameplay & combat, content, story & characters, graphics & art, co-op & multiplayer
+
+> Common complaints: bugs & crashes, price & monetization, developer updates, servers, cheaters
 
 ![SteamTLDR Overview](https://github.com/user-attachments/assets/2e66ed7c-6e3e-481d-915d-63cd88ed4920)
 
@@ -42,14 +52,25 @@ Identify outliers every month across all games where negative reviews surged or 
 
 Read a random positive or negative review in full, fetched directly from Steam's review API.
 
-### Growing game library dataset
+### Curated game library
 
-![SteamTLDR Game Library](https://github.com/user-attachments/assets/1db6f561-cb9f-43bd-ae50-782d1aa84f9f)
+SteamTLDR's dataset currently includes 100 games and training on 400,000+ reviews.
+
+![SteamTLDR Games](https://github.com/user-attachments/assets/f0cc4235-b806-4069-8303-01903e18b4d1)
+
 
 ## Methodology
-
-1. **Collect reviews**: for each game, about 6,000 English reviews from Steam's public API, spread across the game's whole history. Scores and trends use Steam's exact totals, not the sample.
-2. **Judge sentiment**: a TF-IDF + logistic regression model, trained on each review's thumbs up or down. Whole games are held out for testing, so the model is scored on games it has never seen.
+1. **Collect reviews**: for each game, up to 6,000 English reviews from Steam's public API, built from three groups:
+   - **Most helpful**: the 1,000 most helpful reviews of all time.
+   - **Recent**: up to 1,000 from the last 30 days, in four windows of 250.
+   - **Monthly**: up to 4,000 spread evenly across every earlier month, at most 500 per month.
+   - Reviews that appear in more than one group are counted once, so a typical game ends up with about 4,700.
+   - New games have far fewer, since they have little monthly history.
+   - Scores, review counts and trends use Steam's exact totals, not the sample.
+2. **Judge sentiment**: a TF-IDF + logistic regression model, trained on each review's thumbs up or down. It works in two steps:
+   - **TF-IDF** turns each review into numbers by counting its words and two-word phrases, giving more weight to distinctive ones ("crashes", "refund") than to common ones ("the", "game").
+   - **Logistic regression** learns one weight per word or phrase, so that adding up a review's weights gives a positive score for thumbs-up reviews and a negative one for thumbs-down. The sum becomes a probability between 0 and 1.
+   - It reads word counts, not sentence structure, so it is fast (trained on 400k+ reviews in about a minute) and easy to inspect, and it beat an off-the-shelf DistilBERT here. Whole games are held out for testing, so the model is scored on games it has never seen.
 3. **Find themes**: reviews are split into clauses ("great story *but* constant crashes") and matched against 15 keyword themes, like performance, price and story.
 4. **Spot outliers**: a month is flagged when negative reviews surge or the score drops well below that game's usual level.
 5. **Publish**: each game's summary is saved as a small JSON file that the web app reads.
@@ -99,7 +120,7 @@ DistilBERT was trained on movie reviews, so gamer slang like "feet first into he
 
 ```
 steam-tldr/
-├── notebooks/        # marimo notebooks that teach each step, in order
+├── notebooks/                  # marimo notebooks that teach each step, in order
 │   ├── 01_explore.py           # data quality, review length, playtime, trends
 │   ├── 02_text_to_numbers.py   # tokenizing, bag of words, TF-IDF
 │   ├── 03_first_model.py       # train/test split, logistic regression
