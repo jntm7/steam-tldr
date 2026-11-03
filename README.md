@@ -136,7 +136,8 @@ steam-tldr/
 │   ├── export.py     # writes site_data/
 │   ├── app.py        # Streamlit web app
 │   └── ...           # transformer comparison and developer tools
-└── site_data/        # exported summaries the app reads
+├── site_data/        # exported summaries the app reads
+└── web/              # Astro static site built from site_data/ (GitHub Pages)
 ```
 
 ### Getting Started
