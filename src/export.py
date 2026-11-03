@@ -1,15 +1,18 @@
 import argparse
 import json
 import pandas as pd
-from fetch import cached_games
+from fetch import HELPFUL_REVIEWS, HISTORY_REVIEWS, RECENT_DAYS, RECENT_REVIEWS, cached_games
 from games import GAMES
 from model import RANDOM_SEED
 from pathlib import Path
-from summarize import build_summary, display_name
+from summarize import (DROP_MIN_REVIEWS, DROP_SCORE_POINTS, FLAG_LOOKBACK_MONTHS, SURGE_EXTRA_NEGATIVES, SURGE_NEGATIVE_RATIO,
+                       SURGE_SCORE_DROP, build_summary, display_name)
+from themes import FLIP_TO_COMPLAINT, FLIP_TO_PRAISE, PROBLEM_THEMES, THEMES
 
 # Where the exported summaries live, small enough to commit or host anywhere
 EXPORT_DIR = Path(__file__).resolve().parent.parent / "site_data"
 INDEX_NAME = "index.json"
+SETTINGS_NAME = "site.json"
 
 # Summary fields that are tables, saved with their column names so empty ones keep their shape
 TABLE_FIELDS = ["trend", "events", "playtime", "praise", "complaints", "recent_complaints", "shown_reviews"]
@@ -53,6 +56,7 @@ def index_entry(meta: dict, sampled_reviews: int) -> dict:
         "header_image": meta.get("header_image"),
         "library_image": meta.get("library_image"),
         "developers": meta.get("developers") or [],
+        "genres": meta.get("genres") or [],
         "sampled_reviews": sampled_reviews,
         "summary": {key: steam.get(key) for key in ("total_positive", "total_negative", "total_reviews", "review_score_desc")},
     }
@@ -74,6 +78,18 @@ def export_index() -> Path:
                for meta in cached_games() if meta["appid"] in exported]
     path = EXPORT_DIR / INDEX_NAME
     path.write_text(json.dumps(entries, separators=(",", ":")))
+    return path
+
+# Write the sampling, theme and flag settings the website's FAQ quotes
+def export_settings() -> Path:
+    settings = {
+        "helpful_reviews": HELPFUL_REVIEWS, "recent_reviews": RECENT_REVIEWS, "recent_days": RECENT_DAYS, "history_reviews": HISTORY_REVIEWS,
+        "themes": THEMES, "problem_themes": sorted(PROBLEM_THEMES), "flip_to_complaint": FLIP_TO_COMPLAINT, "flip_to_praise": FLIP_TO_PRAISE,
+        "flag_lookback_months": FLAG_LOOKBACK_MONTHS, "surge_negative_ratio": SURGE_NEGATIVE_RATIO, "surge_extra_negatives": SURGE_EXTRA_NEGATIVES,
+        "surge_score_drop": SURGE_SCORE_DROP, "drop_min_reviews": DROP_MIN_REVIEWS, "drop_score_points": DROP_SCORE_POINTS,
+    }
+    path = EXPORT_DIR / SETTINGS_NAME
+    path.write_text(json.dumps(settings, separators=(",", ":")))
     return path
 
 # Read one exported summary, or None when it was never exported
@@ -115,6 +131,7 @@ def main() -> None:
         path = export_summary(appid)
         print("skipped (no reviews)" if path is None else f"{path.stat().st_size / 1024:.0f} KB")
     print(f"Index: {export_index()}")
+    print(f"Settings: {export_settings()}")
 
 # Entry point
 if __name__ == "__main__":
