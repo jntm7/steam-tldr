@@ -1,0 +1,106 @@
+---
+import { CircleHelp, Gamepad2, MessagesSquare, ScanText, TrendingUp, TriangleAlert } from "lucide-react";
+import Base from "../layouts/Base.astro";
+import GameCard from "../components/GameCard.jsx";
+import GithubIcon from "../assets/github.svg";
+import { games, settings, summaries } from "../lib/data.js";
+import { formatCount, gameHref, gameName, tableRows } from "../lib/games.js";
+
+// Trending needs this many reviews in the last 30 days, and this many earlier months to know the usual;
+// games with fewer months are new releases, which fill at most half the row
+const TRENDING_MIN_REVIEWS = 500;
+const TRENDING_MIN_MONTHS = 3;
+const TRENDING_GAMES = 8;
+
+// Headline numbers across every game
+const steamReviews = games.reduce((sum, game) => sum + (game.summary?.total_reviews ?? 0), 0);
+const sampledReviews = games.reduce((sum, game) => sum + game.sampled_reviews, 0);
+
+// Flagged events across every game, counting a run of consecutive months once
+const flagged = summaries.reduce((sum, game) => {
+  if (!game.events) return sum;
+  const episode = game.events.columns.indexOf("episode");
+  return sum + new Set(game.events.data.map((row) => row[episode])).size;
+}, 0);
+
+// The eight most reviewed games
+const popular = [...games].sort((a, b) => b.summary.total_reviews - a.summary.total_reviews).slice(0, 8);
+
+// Middle value of a list of numbers, or 0 for an empty list
+function median(values) {
+  if (values.length === 0) return 0;
+  const sorted = [...values].sort((a, b) => a - b);
+  const middle = Math.floor(sorted.length / 2);
+  return sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2;
+}
+
+// A game's reviews in the last 30 days, whether it's too new to have a usual month, and the recent reviews
+// as a multiple of its usual month, the median of the months before (as for flagged events)
+function reviewActivity(summary) {
+  const months = tableRows(summary.trend);
+  const recent = months.at(-1).reviews;
+  const isNew = months.length - 1 < TRENDING_MIN_MONTHS;
+  const usual = median(months.slice(-1 - settings.flag_lookback_months, -1).map((month) => month.reviews));
+  const surge = !isNew && recent >= TRENDING_MIN_REVIEWS && usual > 0 ? recent / usual : 0;
+  return { recent, isNew, surge };
+}
+
+const byAppid = Object.fromEntries(games.map((game) => [game.appid, game]));
+const activity = summaries
+  .filter((summary) => byAppid[summary.appid])
+  .map((summary) => ({ game: byAppid[summary.appid], ...reviewActivity(summary) }));
+
+// New releases with the most reviews lately, then the games getting the most reviews compared with their usual month
+const newReleases = activity
+  .filter((game) => game.isNew && game.recent >= TRENDING_MIN_REVIEWS)
+  .sort((a, b) => b.recent - a.recent)
+  .slice(0, TRENDING_GAMES / 2);
+const surging = activity.filter((game) => game.surge > 1).sort((a, b) => b.surge - a.surge);
+const trending = [...newReleases, ...surging].slice(0, TRENDING_GAMES);
+
+// Headline numbers as (label, icon, value)
+const stats = [
+  ["Games analyzed", Gamepad2, games.length],
+  ["Reviews analyzed", ScanText, sampledReviews],
+  ["English reviews on Steam", MessagesSquare, steamReviews],
+  ["Flagged events", TriangleAlert, flagged],
+];
+---
+
+<Base>
+  <div slot="sidebar">
+    <div class="outline-title">Popular Games</div>
+    <nav class="outline">
+      {popular.map((game) => <a href={gameHref(game.appid)}><TrendingUp /><span>{gameName(game)}</span></a>)}
+    </nav>
+  </div>
+
+  <h1>SteamTLDR</h1>
+  <p>
+    Steam shows one score. SteamTLDR shows <em>why</em>: what players love, what they complain about, and how opinion is changing,
+    boiled down from thousands of reviews you don't have to read.
+  </p>
+  <div class="buttons">
+    <a class="button primary" href="/games/"><Gamepad2 />Browse games</a>
+    <a class="button secondary" href="/faq/"><CircleHelp />FAQ</a>
+    <a class="button" href="https://github.com/jntm7/steam-tldr" target="_blank" rel="noreferrer" title="View the source on GitHub"><GithubIcon />GitHub</a>
+  </div>
+
+  <div class="stats">
+    {stats.map(([label, Icon, value]) => <div><div class="cell-label"><Icon />{label}</div><div class="cell-stat">{formatCount(value)}</div></div>)}
+  </div>
+
+  <h2>New & Trending</h2>
+  <p class="caption">
+    New releases with the most reviews in the last 30 days, and games getting more reviews than in their usual month
+  </p>
+  <div class="home-library">
+    {trending.map(({ game, isNew, recent, surge }) =>
+      isNew ? (
+        <GameCard game={game} badge="New" note={`${formatCount(recent)} reviews in 30 days`} />
+      ) : (
+        <GameCard game={game} note={`${surge.toFixed(1)}× usual reviews`} />
+      ),
+    )}
+  </div>
+</Base>

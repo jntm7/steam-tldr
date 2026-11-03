@@ -8,3 +8,7 @@ data/*
 __marimo__/
 .claude/
 CLAUDE.md
+# Astro site
+web/node_modules/
+web/dist/
+web/.astro/

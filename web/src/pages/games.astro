@@ -1,0 +1,16 @@
+---
+import Base from "../layouts/Base.astro";
+import Library from "../components/Library.jsx";
+import RecentGames from "../components/RecentGames.jsx";
+import { games } from "../lib/data.js";
+import { gameName } from "../lib/games.js";
+
+// Game names by app ID for the recently viewed list
+const names = Object.fromEntries(games.map((game) => [game.appid, gameName(game)]));
+---
+
+<Base title="Games">
+  <RecentGames slot="sidebar" names={names} client:load />
+  <h1>Games</h1>
+  <Library games={games} client:load />
+</Base>

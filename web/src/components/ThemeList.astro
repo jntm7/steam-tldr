@@ -1,0 +1,24 @@
+---
+import { capitalize, themeIcon } from "../lib/themes.js";
+
+// Theme rows in one colour, with bars scaled to the biggest theme
+const { rows, color } = Astro.props;
+const scale = Math.max(...rows.map((row) => row.pct), 1);
+---
+
+{rows.length === 0 ? (
+  <p class="caption">Nothing stands out.</p>
+) : (
+  <div class="theme-list" style={`--theme-color: ${color}`}>
+    {rows.map((row) => {
+      const Icon = themeIcon(row.theme);
+      return (
+        <div class="theme-row">
+          <div class="theme-head"><Icon />{capitalize(row.theme)}<span class="theme-pct">{Math.round(row.pct)}%</span></div>
+          <div class="theme-track"><div class="theme-bar" style={`width: ${(100 * row.pct) / scale}%`} /></div>
+          {row.example && <div class="theme-quote">“{row.example}”</div>}
+        </div>
+      );
+    })}
+  </div>
+)}

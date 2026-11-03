@@ -1,0 +1,112 @@
+---
+import { Brain, Database, Lightbulb, OctagonAlert, Shapes, TriangleAlert } from "lucide-react";
+import Base from "../layouts/Base.astro";
+import { settings } from "../lib/data.js";
+import { COMPLAINT_COLOR, PRAISE_COLOR, formatCount } from "../lib/games.js";
+import { capitalize, themeIcon } from "../lib/themes.js";
+
+// Sidebar outline as (anchor, heading, icon, colour), matching the headings below
+const sections = [
+  ["why-steamtldr", "Why SteamTLDR?", Lightbulb, PRAISE_COLOR],
+  ["data-sources", "Data sources", Database, PRAISE_COLOR],
+  ["finding-themes", "Finding themes", Shapes, PRAISE_COLOR],
+  ["judging-tone", "Judging tone", Brain, PRAISE_COLOR],
+  ["flagged-events", "Flagged events", TriangleAlert, COMPLAINT_COLOR],
+  ["known-limits", "Known limits", OctagonAlert, COMPLAINT_COLOR],
+];
+
+// Share as a whole percent, for the numbers quoted below
+const percent = (share) => `${Math.round(share * 100)}%`;
+const s = settings;
+---
+
+<Base title="FAQ">
+  <div slot="sidebar">
+    <div class="outline-title">On this page</div>
+    <nav class="outline">
+      {sections.map(([anchor, label, Icon, color]) => <a href={`#${anchor}`}><Icon color={color} /><span>{label}</span></a>)}
+    </nav>
+  </div>
+
+  <h1>FAQ</h1>
+  <p class="caption">
+    SteamTLDR is a personal project and isn't affiliated with Valve or Steam. Game names, images and reviews belong to their respective owners.
+  </p>
+
+  <hr />
+  <h2 id="why-steamtldr"><Lightbulb color={PRAISE_COLOR} />Why SteamTLDR?</h2>
+  <p>
+    Steam gives you one score, so finding out why players love or hate a game means reading dozens of reviews or watching a video,
+    and a single number hides what they praise, what they complain about, and whether opinion is changing.
+    SteamTLDR reads thousands of reviews per game and sums up the <em>why</em>: top themes, recent trends, and how new players compare with veterans.
+  </p>
+
+  <hr />
+  <h2 id="data-sources"><Database color={PRAISE_COLOR} />Data sources</h2>
+  <ul>
+    <li>Reviews come from Steam's public review API, English only.</li>
+    <li>Scores, monthly trends and the playtime split are <strong>Steam's exact totals</strong>, not estimates.</li>
+    <li>
+      The text sample per game: the {formatCount(s.helpful_reviews)} most helpful reviews, {formatCount(s.recent_reviews)} from the
+      last {s.recent_days} days, and up to {formatCount(s.history_reviews)} spread across earlier months.
+    </li>
+    <li>Each game is a snapshot, and its page shows when it was last updated.</li>
+  </ul>
+
+  <hr />
+  <h2 id="finding-themes"><Shapes color={PRAISE_COLOR} />Finding themes</h2>
+  <ul>
+    <li>
+      Reviews are split into clauses at punctuation and turning-point words like <em>but</em> and <em>however</em>, so
+      "great story but constant crashes" is praise for the story and a complaint about crashes.
+    </li>
+    <li>Each clause is matched against {Object.keys(s.themes).length} themes, each a hand-picked keyword list.</li>
+    <li>
+      A clause takes its review's thumbs up or down, unless the sentiment model is confident it's the opposite
+      (below {percent(s.flip_to_complaint)} positive in a thumbs-up review, above {percent(s.flip_to_praise)} in a thumbs-down one).
+    </li>
+    <li>{capitalize(s.problem_themes.join(" and "))} always count as complaints.</li>
+    <li>Results are re-weighted to match the game's real score, so "23%" means about 23% of all its reviews.</li>
+  </ul>
+  <div class="theme-grid">
+    {Object.entries(s.themes).map(([theme, words]) => {
+      const ThemeIcon = themeIcon(theme);
+      return (
+        <div class="theme-row">
+          <div class="theme-head"><ThemeIcon />{capitalize(theme)}</div>
+          <div class="theme-quote">{words.slice(0, 4).join(", ")}…</div>
+        </div>
+      );
+    })}
+  </div>
+
+  <hr />
+  <h2 id="judging-tone"><Brain color={PRAISE_COLOR} />Judging tone</h2>
+  <ul>
+    <li>A TF-IDF and logistic regression model, trained on about 426,000 reviews from 100 games with each review's thumbs up or down as its label.</li>
+    <li>Tested on three games it never saw (Helldivers 2, Cities: Skylines II, Hollow Knight: Silksong), it was right about 91% of the time.</li>
+  </ul>
+
+  <hr />
+  <h2 id="flagged-events"><TriangleAlert color={COMPLAINT_COLOR} />Flagged events</h2>
+  <ul>
+    <li>"Usual" is the median of the previous {s.flag_lookback_months} months.</li>
+    <li>
+      <strong>Negative surge</strong> (a review bomb): negative reviews at least {s.surge_negative_ratio}× usual
+      and {s.surge_extra_negatives} more, with the score at least {s.surge_score_drop} points below usual.
+    </li>
+    <li>
+      <strong>Score drop</strong>: {formatCount(s.drop_min_reviews)}+ reviews and the score at least {s.drop_score_points} points
+      below usual, without that surge.
+    </li>
+  </ul>
+
+  <hr />
+  <h2 id="known-limits"><OctagonAlert color={COMPLAINT_COLOR} />Known limits</h2>
+  <ul>
+    <li>Keywords can't read context: Helldivers 2's enemy "bugs" count as bug complaints, and Stardew Valley's "money" is in-game gold.</li>
+    <li>Sarcasm and negation ("not bad at all") can fool the model.</li>
+    <li>The text sample leans toward helpful reviews, so scores come from Steam's totals.</li>
+    <li>A flag shows something happened, not why, or whether it was fair.</li>
+  </ul>
+</Base>
