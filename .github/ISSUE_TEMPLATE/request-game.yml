@@ -1,0 +1,42 @@
+name: Request a game
+description: Ask for a Steam game to be added to SteamTLDR.
+title: "Add game: "
+labels: ["game request"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the suggestion! SteamTLDR reads a game's English reviews on Steam, so a game needs to be on Steam with a few hundred English reviews to give useful results.
+
+        Please check the [games library](https://steamtldr.jntam.ca/games/) first, in case it's already there.
+
+  - type: input
+    id: store-link
+    attributes:
+      label: Steam store link
+      description: Copy it from the address bar on the game's Steam store page.
+      placeholder: https://store.steampowered.com/app/1086940/Baldurs_Gate_3/
+    validations:
+      required: true
+
+  - type: input
+    id: name
+    attributes:
+      label: Game name
+      placeholder: Baldur's Gate 3
+    validations:
+      required: true
+
+  - type: textarea
+    id: why
+    attributes:
+      label: What would you like to know about it?
+      description: Optional. For example, whether a recent update fixed its problems, or why its score dropped.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before you submit
+      options:
+        - label: I searched the games library and this game isn't there yet.
+          required: true
