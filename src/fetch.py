@@ -161,16 +161,19 @@ def fetch_hashed_library_image(appid: int) -> str | None:
     response = requests.get(STORE_ITEMS_URL, params={"input_json": json.dumps(request)}, timeout=30)
     time.sleep(SLEEP_SECONDS)
     items = response.json().get("response", {}).get("store_items", []) if response.ok else []
-    path = items[0].get("assets", {}).get("library_capsule_2x") if items else None
+    assets = items[0].get("assets", {}) if items else {}
+    # Some games (Black Ops 7) have no library cover, only the near-portrait 748x896 store hero capsule
+    path = assets.get("library_capsule_2x") or assets.get("hero_capsule_2x")
     return STORE_ASSETS_URL.format(appid, path) if path else None
 
-# Portrait 600x900 library cover: the usual link, else the hashed one; None when Steam has neither
+# Portrait 600x900 library cover: the store API's current one first, since the usual link can be a stale placeholder
+# (Battlefield 6's is a blank grey image); None when Steam has neither
 def fetch_library_image(appid: int) -> str | None:
-    url = LIBRARY_IMAGE_URL.format(appid)
-    if requests.head(url, timeout=30).ok:
-        return url
     hashed = fetch_hashed_library_image(appid)
-    return hashed if hashed and requests.head(hashed, timeout=30).ok else None
+    if hashed and requests.head(hashed, timeout=30).ok:
+        return hashed
+    url = LIBRARY_IMAGE_URL.format(appid)
+    return url if requests.head(url, timeout=30).ok else None
 
 # Fetch Steam's exact review totals for each playtime group
 def fetch_playtime(appid: int) -> dict:
