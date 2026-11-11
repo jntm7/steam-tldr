@@ -67,6 +67,10 @@ hr { margin: 1.5rem 0; border: 0; border-top: 1px solid var(--border); }
   opacity: 1; background: color-mix(in srgb, var(--text) 16%, transparent); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
+/* Cursors: a hand on anything clickable, not-allowed when disabled (html raises it above per-component button rules) */
+a[href], button, summary, select { cursor: pointer; }
+html :is(button, select):disabled { cursor: not-allowed; }
+
 /* Footer: a full-width band pinned to the bottom of short pages */
 .site-footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.75rem 2rem; max-width: 1280px; margin: 0 auto;
   font-size: 0.8rem; color: var(--muted); }
@@ -210,7 +214,7 @@ hr { margin: 1.5rem 0; border: 0; border-top: 1px solid var(--border); }
 .pagination button { display: flex; align-items: center; justify-content: center; min-width: 2rem; height: 2rem; padding: 0 0.5rem; border: 1px solid var(--border);
   border-radius: 8px; background: none; color: inherit; font: inherit; font-size: 0.85rem; cursor: pointer; }
 .pagination button:hover:not(:disabled) { border-color: var(--accent); }
-.pagination button:disabled { opacity: 0.4; cursor: default; }
+.pagination button:disabled { opacity: 0.4; }
 .pagination button.on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 18%, transparent); color: var(--accent); font-weight: 700; }
 .pagination .gap { color: var(--muted); }
 
@@ -249,7 +253,7 @@ hr { margin: 1.5rem 0; border: 0; border-top: 1px solid var(--border); }
 .back-link:hover { color: var(--accent); }
 .button.small { height: 2.5rem; padding: 0 1rem; gap: 0.5rem; font-size: 0.95rem; background: none; cursor: pointer; font-family: inherit; }
 .button.small svg { width: 1.1rem; height: 1.1rem; }
-.button.small:disabled { opacity: 0.5; cursor: not-allowed; }
+.button.small:disabled { opacity: 0.5; }
 
 /* Overview panels: credits, then headline numbers */
 .stats + .stats { margin-top: 0.75rem; }
@@ -279,6 +283,7 @@ hr { margin: 1.5rem 0; border: 0; border-top: 1px solid var(--border); }
 .chart .chart-tick-strong { fill: var(--text); font-size: 13px; font-weight: 700; }
 .chart .chart-value { fill: var(--text); font-size: 14px; font-weight: 700; }
 .chart .recharts-surface:focus, .chart .recharts-wrapper:focus { outline: none; }
+.chart .recharts-wrapper { cursor: crosshair; }
 .chart-tooltip { padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: 0.5rem; background: var(--bg); font-size: 0.85rem; line-height: 1.5;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); }
 .tooltip-title { color: var(--muted); }
@@ -744,7 +749,7 @@ kbd { padding: 0.1rem 0.4rem; border: 1px solid var(--border); border-radius: 0.
 .review-another { display: inline-flex; align-items: center; gap: 0.55rem; margin-left: auto; padding: 0.42rem 0.95rem 0.42rem 0.75rem; border: 1px solid var(--border); border-radius: 999px; background: none; color: inherit; font-family: var(--mono, ui-monospace, monospace); font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; transition: border-color 0.2s ease, color 0.2s ease; }
 .review-another svg { width: 0.95rem; height: 0.95rem; }
 .review-another:hover { border-color: color-mix(in srgb, var(--accent) 55%, var(--border)); color: var(--accent-word); }
-.review-another:disabled { opacity: 0.45; cursor: default; }
+.review-another:disabled { opacity: 0.45; }
 
 /* Reading width: body text in sections runs to the right edge of the nav's search pill (set by SiteNav's script) and avoids one-word last lines */
 .panel > p, .panel > ul, .panel > ol { max-width: var(--text-max, 46rem); text-wrap: pretty; }
