@@ -123,12 +123,13 @@ def flagged_events() -> pd.DataFrame:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Export game summaries as small JSON files for the website.")
     parser.add_argument("appids", type=int, nargs="*", help="app IDs to export (default: every game in games.py)")
+    parser.add_argument("--refresh", action="store_true", help="re-fetch from Steam even when the cache is under 30 days old")
     args = parser.parse_args()
 
     appids = args.appids or list(GAMES)
     for i, appid in enumerate(appids, start=1):
         print(f"[{i}/{len(appids)}] {GAMES.get(appid, appid)}", end=" ")
-        path = export_summary(appid)
+        path = export_summary(appid, args.refresh)
         print("skipped (no reviews)" if path is None else f"{path.stat().st_size / 1024:.0f} KB")
     print(f"Index: {export_index()}")
     print(f"Settings: {export_settings()}")
