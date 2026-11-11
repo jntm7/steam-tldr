@@ -36,6 +36,9 @@ const COLUMNS = [
 const PAGE_SIZE = 50;
 const EAGER_GAMES = 30;
 
+// Table rows are short, so only the first dozen are on screen at first; the rest load when scrolled near
+const EAGER_ROWS = 12;
+
 // Genres need this many games to get an entry in the genre menu, which hides one-off software categories
 const MIN_GENRE_GAMES = 2;
 
@@ -96,7 +99,7 @@ function GameTable({ games, sort, setSort }) {
             <tr key={game.appid}>
               <td className="col-game">
                 <div className="game-cell">
-                  {game.header_image ? <img src={game.banner ?? game.header_image} alt="" width="240" height="112" loading={index < EAGER_GAMES ? "eager" : "lazy"} decoding="async" /> : <div className="row-empty" />}
+                  {game.header_image ? <img src={game.thumb ?? game.header_image} alt="" width="220" height="103" loading={index < EAGER_ROWS ? "eager" : "lazy"} decoding="async" /> : <div className="row-empty" />}
                   <span className="row-name"><a href={gameHref(game.appid)}>{gameName(game)}</a><small>{(game.developers ?? []).join(", ")}</small></span>
                 </div>
               </td>
