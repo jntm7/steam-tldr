@@ -727,8 +727,17 @@ kbd { padding: 0.1rem 0.4rem; border: 1px solid var(--border); border-radius: 0.
 @keyframes review-in { from { opacity: 0; transform: translateY(18px); filter: blur(4px); } }
 @media (prefers-reduced-motion: reduce) { .review-stage, .review-hours-track i { animation: none; } }
 
+/* Review filters */
+.review-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; margin-bottom: 1rem; }
+.review-another { display: inline-flex; align-items: center; gap: 0.55rem; margin-left: auto; padding: 0.42rem 0.95rem 0.42rem 0.75rem; border: 1px solid var(--border); border-radius: 999px; background: none; color: inherit; font-family: var(--mono, ui-monospace, monospace); font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; transition: border-color 0.2s ease, color 0.2s ease; }
+.review-another svg { width: 0.95rem; height: 0.95rem; }
+.review-another:hover { border-color: color-mix(in srgb, var(--accent) 55%, var(--border)); color: var(--accent-word); }
+.review-another:disabled { opacity: 0.45; cursor: default; }
+
 /* Reading width: body text in sections runs to the right edge of the nav's search pill (set by SiteNav's script) and avoids one-word last lines */
 .panel > p, .panel > ul, .panel > ol { max-width: var(--text-max, 46rem); text-wrap: pretty; }
+/* Full-width chart captions */
+.panel > p.caption-wide { max-width: none; }
 
 /* FAQ themes as a ruled 4 by 4 matrix: icon, name, a few keywords and how many more, with hairlines instead of cards */
 .theme-matrix { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin-top: 1.5rem; border-bottom: 1px solid var(--border); }

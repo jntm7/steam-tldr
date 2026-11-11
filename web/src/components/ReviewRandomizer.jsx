@@ -62,7 +62,7 @@ export default function ReviewRandomizer({ reviews }) {
 
   return (
     <div>
-      <div className="chart-controls">
+      <div className="review-toolbar">
         <div className="segmented" role="group" aria-label="Kind of review">
           {Object.keys(KINDS).map((label) => (
             <button key={label} className={kind === label ? "on" : ""} aria-pressed={kind === label} onClick={() => setKind(label)}>{label}</button>
@@ -73,7 +73,7 @@ export default function ReviewRandomizer({ reviews }) {
             <button key={label} className={age === label ? "on" : ""} aria-pressed={age === label} onClick={() => setAge(label)}>{label}</button>
           ))}
         </div>
-        <button className="button small" onClick={() => { setPick(randomIndex(pool.length, pick)); setTurns((n) => n + 1); }} disabled={pool.length < 2}>
+        <button className="review-another" onClick={() => { setPick(randomIndex(pool.length, pick)); setTurns((n) => n + 1); }} disabled={pool.length < 2}>
           <Shuffle style={{ transform: `rotate(${turns * 180}deg)`, transition: "transform 0.5s ease" }} />Another one
         </button>
       </div>

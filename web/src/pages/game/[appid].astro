@@ -104,7 +104,7 @@ const dots = [
 
   <section class="panel" id="opinions-over-time" data-reveal>
     <h2><ChartLine color={PRAISE_COLOR} />Trends</h2>
-    <p class="caption">
+    <p class="caption caption-wide">
       Percent positive each month, with the number of reviews below. The dashed line is the all-time score, and the last point covers the last 30 days.
     </p>
     <TrendCharts points={points} overall={game.pct_positive} client:visible />
@@ -130,7 +130,7 @@ const dots = [
   {hasRecent && (
     <section class="panel" id="recent-complaints" data-reveal>
       <h2><Clock color={COMPLAINT_COLOR} />Recent</h2>
-      <p class="caption">Complaints in reviews from the last 30 days ({recentWindow}), compared with the game's all-time share, to spot new problems and recent fixes</p>
+      <p class="caption caption-wide">Complaints in reviews from the last 30 days ({recentWindow}), compared with the game's all-time share, to spot new problems and recent fixes</p>
       <RecentComplaints rows={recentComplaints} color={COMPLAINT_COLOR} />
     </section>
   )}
