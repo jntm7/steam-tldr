@@ -10,6 +10,8 @@ from pathlib import Path
 API_URL = "https://api.steampowered.com/IUserReviewsService/GetAppReviews/v1/"
 APP_DETAILS_URL = "https://store.steampowered.com/api/appdetails"
 LIBRARY_IMAGE_URL = "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/{}/library_600x900.jpg"
+STORE_ITEMS_URL = "https://api.steampowered.com/IStoreBrowseService/GetItems/v1"
+STORE_ASSETS_URL = "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/{}/{}"
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 CACHE_DAYS = 30
 SLEEP_SECONDS = 1.0
@@ -153,10 +155,22 @@ def fetch_app_details(appid: int) -> dict:
         "genres": [genre["description"] for genre in data.get("genres", [])],
     }
 
-# Portrait library cover, if Steam has one at the usual link
+# Newer games keep their portrait cover under a hashed file name, which only Steam's store API reveals
+def fetch_hashed_library_image(appid: int) -> str | None:
+    request = {"ids": [{"appid": appid}], "context": {"language": "english", "country_code": "US"}, "data_request": {"include_assets": True}}
+    response = requests.get(STORE_ITEMS_URL, params={"input_json": json.dumps(request)}, timeout=30)
+    time.sleep(SLEEP_SECONDS)
+    items = response.json().get("response", {}).get("store_items", []) if response.ok else []
+    path = items[0].get("assets", {}).get("library_capsule_2x") if items else None
+    return STORE_ASSETS_URL.format(appid, path) if path else None
+
+# Portrait 600x900 library cover: the usual link, else the hashed one; None when Steam has neither
 def fetch_library_image(appid: int) -> str | None:
     url = LIBRARY_IMAGE_URL.format(appid)
-    return url if requests.head(url, timeout=30).ok else None
+    if requests.head(url, timeout=30).ok:
+        return url
+    hashed = fetch_hashed_library_image(appid)
+    return hashed if hashed and requests.head(hashed, timeout=30).ok else None
 
 # Fetch Steam's exact review totals for each playtime group
 def fetch_playtime(appid: int) -> dict:
