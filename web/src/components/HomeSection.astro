@@ -1,0 +1,56 @@
+---
+import { gameHref, gameName, scoreColor, steamPct } from "../lib/games.js";
+
+// One landing section: a large featured game, then the rest as ruled rows with a score meter and one headline figure each
+const { id, title, Icon, caption, items } = Astro.props;
+const [first, ...rest] = items;
+
+const pctOf = (game) => steamPct(game);
+const art = (game) => game.wide ?? game.header_image;
+---
+
+<section class="panel home-panel" id={id} data-reveal>
+  <h2><Icon />{title}</h2>
+  <p class="caption">{caption}</p>
+  {items.length === 0 ? <p class="caption">Nothing here right now.</p> : (
+    <div class="feature">
+      <a class="feature-main" href={gameHref(first.game.appid)}>
+        <div class="feature-art">
+          {art(first.game) && <img src={art(first.game)} alt={gameName(first.game)} width="460" height="215" loading="lazy" decoding="async" />}
+          {first.badge && <span class="game-badge">{first.badge}</span>}
+        </div>
+        <div class="feature-info">
+          <div class="feature-name">{gameName(first.game)}</div>
+          <div class="feature-genres">{(first.game.genres ?? []).slice(0, 3).join(" · ")}</div>
+          <div class="feature-figure"><b>{first.figure}</b><span>{first.unit}</span></div>
+          {pctOf(first.game) !== null && (
+            <div class="feature-score" style={`--score: ${pctOf(first.game).toFixed(0)}%; --tone: ${scoreColor(pctOf(first.game))}`}>
+              <div class="mini-meter"><i></i></div>
+              <span>{pctOf(first.game).toFixed(0)}% · {first.game.summary.review_score_desc}</span>
+            </div>
+          )}
+        </div>
+      </a>
+      <ol class="feature-rest">
+        {rest.map((item, i) => (
+          <li>
+            <a class="feature-row" href={gameHref(item.game.appid)}>
+              <span class="feature-rank">{String(i + 2).padStart(2, "0")}</span>
+              {art(item.game) && <img src={art(item.game)} alt="" width="460" height="215" loading="lazy" decoding="async" />}
+              <span class="feature-row-info">
+                <span class="feature-row-name">{gameName(item.game)}</span>
+                {pctOf(item.game) !== null && (
+                  <span class="feature-score small" style={`--score: ${pctOf(item.game).toFixed(0)}%; --tone: ${scoreColor(pctOf(item.game))}`}>
+                    <span class="mini-meter"><i></i></span>
+                    <span>{pctOf(item.game).toFixed(0)}% · {item.game.summary.review_score_desc}</span>
+                  </span>
+                )}
+              </span>
+              <span class="feature-row-figure"><b>{item.figure}</b><span>{item.unit}</span></span>
+            </a>
+          </li>
+        ))}
+      </ol>
+    </div>
+  )}
+</section>
