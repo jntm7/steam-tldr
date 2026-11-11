@@ -14,7 +14,7 @@ tags:
 
 # SteamTLDR sentiment model
 
-A small, fast sentiment classifier for English Steam game reviews. It predicts whether a review is a thumbs up (positive) or thumbs down (negative). It is the model behind [SteamTLDR](https://steamtldr.streamlit.app), which summarizes what players praise and complain about for each game.
+A small, fast sentiment classifier for English Steam game reviews. It predicts whether a review is a thumbs up (positive) or thumbs down (negative). It is the model behind [SteamTLDR](https://steamtldr.jntam.ca), which summarizes what players praise and complain about for each game.
 
 Code and training pipeline: https://github.com/jntm7/steam-tldr
 

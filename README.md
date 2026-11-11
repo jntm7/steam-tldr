@@ -3,10 +3,10 @@
 ![SteamTLDR](https://github.com/user-attachments/assets/34b9dec6-3151-4632-8d2e-512c793ecd16)
 ![License](https://img.shields.io/github/license/jntm7/steam-tldr)
 ![Python](https://img.shields.io/badge/Python-3.14-3776AB?logo=python&logoColor=white)
-![Streamlit](https://img.shields.io/badge/Streamlit-app-FF4B4B?logo=streamlit&logoColor=white)
+![Astro](https://img.shields.io/badge/Astro-site-BC52EE?logo=astro&logoColor=white)
 ![scikit-learn](https://img.shields.io/badge/scikit--learn-ML-F7931E?logo=scikitlearn&logoColor=white)
 ![pandas](https://img.shields.io/badge/pandas-data-150458?logo=pandas&logoColor=white)
-[![Live demo](https://img.shields.io/badge/Live_demo-steamtldr.streamlit.app-FF4B4B?logo=streamlit&logoColor=white)](https://steamtldr.streamlit.app)
+[![Live site](https://img.shields.io/badge/Live_site-steamtldr.jntam.ca-3d8fd1)](https://steamtldr.jntam.ca)
 
 SteamTLDR is a personal project built to get hands-on practice with machine learning and sentiment analysis.
 
@@ -134,22 +134,26 @@ steam-tldr/
 │   ├── themes.py     # theme matching and scoring
 │   ├── summarize.py  # builds each game's summary and flags outliers
 │   ├── export.py     # writes site_data/
-│   ├── app.py        # Streamlit web app
 │   └── ...           # transformer comparison and developer tools
-├── site_data/        # exported summaries the app reads
+├── site_data/        # exported summaries the site reads
 └── web/              # Astro static site built from site_data/ (GitHub Pages)
 ```
 
 ### Getting Started
 
-To run locally, SteamTLDR requires [uv](https://docs.astral.sh/uv/) and Python 3.14.
+The website needs [Node.js](https://nodejs.org/) and runs straight from `site_data/`, with no fetching needed:
+
+```bash
+npm install --prefix web
+npm run dev --prefix web
+```
+
+The Python pipeline (fetching, the model, themes and exports) needs [uv](https://docs.astral.sh/uv/) and Python 3.14:
 
 ```bash
 uv sync
-uv run streamlit run src/app.py
+uv run python src/export.py
 ```
-
-The app runs straight from `site_data/`, with no fetching needed.
 
 ## Notebooks
 
