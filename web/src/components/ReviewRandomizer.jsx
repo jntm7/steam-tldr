@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Shuffle, ThumbsDown, ThumbsUp } from "lucide-react";
 import { COMPLAINT_COLOR, MONTHS, PRAISE_COLOR, formatCount } from "../lib/games.js";
 
@@ -7,6 +7,14 @@ const KINDS = {
   Any: () => true,
   Positive: (review) => review.voted_up,
   Negative: (review) => !review.voted_up,
+};
+
+// Age choices: new means written in the last year
+const YEAR_MS = 365 * 24 * 60 * 60 * 1000;
+const AGES = {
+  "Any age": () => true,
+  New: (review, cutoff) => Date.parse(review.created) >= cutoff,
+  Old: (review, cutoff) => Date.parse(review.created) < cutoff,
 };
 
 // A random position in a list, different from the current one when there's a choice
@@ -44,11 +52,13 @@ function ReviewCard({ review }) {
 // One random review from the sample, kept until the reader asks for another
 export default function ReviewRandomizer({ reviews }) {
   const [kind, setKind] = useState("Any");
+  const [age, setAge] = useState("Any age");
   const [pick, setPick] = useState(0);
   const [turns, setTurns] = useState(0);
-  const pool = reviews.filter(KINDS[kind]);
+  const cutoff = useMemo(() => Date.now() - YEAR_MS, []);
+  const pool = reviews.filter((review) => KINDS[kind](review) && AGES[age](review, cutoff));
 
-  useEffect(() => setPick(randomIndex(pool.length)), [kind]);
+  useEffect(() => setPick(randomIndex(pool.length)), [kind, age]);
 
   return (
     <div>
@@ -58,11 +68,16 @@ export default function ReviewRandomizer({ reviews }) {
             <button key={label} className={kind === label ? "on" : ""} aria-pressed={kind === label} onClick={() => setKind(label)}>{label}</button>
           ))}
         </div>
+        <div className="segmented" role="group" aria-label="Age of review">
+          {Object.keys(AGES).map((label) => (
+            <button key={label} className={age === label ? "on" : ""} aria-pressed={age === label} onClick={() => setAge(label)}>{label}</button>
+          ))}
+        </div>
         <button className="button small" onClick={() => { setPick(randomIndex(pool.length, pick)); setTurns((n) => n + 1); }} disabled={pool.length < 2}>
           <Shuffle style={{ transform: `rotate(${turns * 180}deg)`, transition: "transform 0.5s ease" }} />Another one
         </button>
       </div>
-      {pool.length === 0 ? <p className="caption">No reviews of this kind in the sample.</p> : <ReviewCard key={`${kind}-${pick}`} review={pool[pick] ?? pool[0]} />}
+      {pool.length === 0 ? <p className="caption">No reviews match these filters in the sample.</p> : <ReviewCard key={`${kind}-${pick}`} review={pool[pick] ?? pool[0]} />}
     </div>
   );
 }
