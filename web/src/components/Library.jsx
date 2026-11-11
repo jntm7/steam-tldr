@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, LayoutGrid, List, Search, X } from "lucide-react";
 import GameCard from "./GameCard.jsx";
 import { useFoldAwareImages } from "../lib/useFoldAwareImages.js";
@@ -120,6 +120,10 @@ function GameTable({ games, sort, setSort }) {
   );
 }
 
+// Narrow screens start in list view, and a picked view is remembered
+const VIEW_KEY = "steamtldr_library_view";
+const PHONE_QUERY = "(max-width: 560px)";
+
 // Searchable, sortable game library with genre and score filters, a cards or table view and pages of 50
 export default function Library({ games }) {
   const [search, setSearch] = useState("");
@@ -130,6 +134,18 @@ export default function Library({ games }) {
   const [paging, setPaging] = useState({ page: 1, key: "" });
   const results = useRef(null);
   useFoldAwareImages(results);
+
+  // Saved view, else list on phones
+  useEffect(() => {
+    let saved = null;
+    try { saved = localStorage.getItem(VIEW_KEY); } catch {}
+    if (saved in VIEWS) setView(saved);
+    else if (matchMedia(PHONE_QUERY).matches) setView("List");
+  }, []);
+  const pickView = (label) => {
+    setView(label);
+    try { localStorage.setItem(VIEW_KEY, label); } catch {}
+  };
 
   const [key, highestFirst] = SORTS[sort];
   const sorted = [...games]
@@ -190,7 +206,7 @@ export default function Library({ games }) {
         </label>
         <div className="field toolbar-view" role="group" aria-label="View">
           {Object.entries(VIEWS).map(([label, Icon]) => (
-            <button key={label} className={view === label ? "on" : ""} aria-label={label} aria-pressed={view === label} onClick={() => setView(label)}>
+            <button key={label} className={view === label ? "on" : ""} aria-label={label} aria-pressed={view === label} onClick={() => pickView(label)}>
               <Icon size={20} />
             </button>
           ))}

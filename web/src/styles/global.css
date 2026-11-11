@@ -550,7 +550,6 @@ main.pill-main { margin-left: 0; padding: 0; }
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35); }
   .site-links a { flex-direction: column; gap: 0.1rem; min-width: 4.1rem; padding: 0.35rem 0.6rem; font-size: 0.68rem; }
   .site-links svg { width: 1.2rem; height: 1.2rem; }
-  .page-footer { padding-bottom: 6rem; }
   .hero { padding-top: 5rem; }
   .page-hero { padding-top: 5rem; padding-bottom: 1.75rem; }
   .dev-dock { display: none; }
@@ -719,6 +718,12 @@ kbd { padding: 0.1rem 0.4rem; border: 1px solid var(--border); border-radius: 0.
 .footer-links { display: flex; gap: 1rem; }
 .footer-links a { display: inline-flex; align-items: center; gap: 0.35rem; color: inherit; white-space: nowrap; }
 .footer-links svg { flex: none; width: 1em; height: 1em; }
+@media (max-width: 760px) {
+  .page-footer { padding: 2rem 1.5rem 6.5rem; }
+  .site-footer { flex-direction: column; gap: 1.25rem; }
+  .footer-legal { flex: none; text-wrap: pretty; }
+  .footer-credit { align-items: flex-start; gap: 0.6rem; padding-top: 1.25rem; border-top: 1px solid var(--border); width: 100%; }
+}
 
 /* Reviews: one review as a large pull-quote with a tinted quote mark, a coloured rule and a small playtime bar */
 .review-stage { position: relative; margin: 2.5rem 0 0.5rem; padding: 0.25rem 0 0.25rem clamp(1.1rem, 3vw, 2.5rem); border-left: 3px solid var(--verdict); animation: review-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) both; }
