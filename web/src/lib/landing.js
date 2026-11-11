@@ -21,8 +21,8 @@ export function reportCard(game, summary) {
   };
 }
 
-// Games shown in the hero card, in order: Counter-Strike 2, Helldivers 2, PUBG: Battlegrounds
-const HERO_GAMES = [730, 553850, 578080];
+// Hero card games, alternating high and mixed scores: Monster Hunter Wilds, Counter-Strike 2, Cities: Skylines II, Baldur's Gate 3, Helldivers 2
+const HERO_GAMES = [2246340, 730, 949230, 1086940, 553850];
 
 // Report cards for the hero games, skipping any missing from the library
 export function heroCards(games, summaries) {

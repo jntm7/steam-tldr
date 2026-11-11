@@ -85,7 +85,8 @@ hr { margin: 1.5rem 0; border: 0; border-top: 1px solid var(--border); }
 .button.primary { border-color: var(--accent); background: var(--accent); color: #fff; }
 .button.primary:hover { background: color-mix(in srgb, var(--accent) 85%, #000); }
 .button.secondary { border-color: color-mix(in srgb, var(--accent-light) 55%, transparent); background: color-mix(in srgb, var(--accent-light) 16%, transparent); color: var(--accent); }
-.button.icon { width: 3.25rem; padding: 0; justify-content: center; }
+.button.icon { flex: none; width: 3.25rem; padding: 0; justify-content: center; }
+.button-group { display: flex; gap: inherit; }
 .button.secondary:hover { border-color: var(--accent-light); background: color-mix(in srgb, var(--accent-light) 26%, transparent); }
 
 /* Bordered stat panel: cells sit on a border-coloured background with 1px gaps, so the gaps draw the dividers in any layout */
@@ -372,8 +373,10 @@ main.pill-main { margin-left: 0; padding: 0; }
 .pat-outline { fill: none; stroke: color-mix(in srgb, var(--text) 16%, transparent); stroke-width: 3; stroke-linejoin: round; }
 .pat-praise { fill: color-mix(in srgb, var(--accent) 30%, transparent); }
 .pat-complaint { fill: color-mix(in srgb, #e05d5d 30%, transparent); }
-.hero-inner { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 470px); gap: clamp(2rem, 5vw, 5rem); align-items: center; width: 100%; max-width: 1280px; margin: 0 auto; }
-.hero-title { margin: 0 0 1.25rem; font-size: clamp(2.3rem, 4.6vw, 4rem); line-height: 1.08; letter-spacing: -0.01em; }
+.hero-inner { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, clamp(400px, 34vw, 470px)); gap: clamp(2rem, 5vw, 5rem); align-items: center; width: 100%; max-width: 1280px; margin: 0 auto; }
+.hero-text { container-type: inline-size; }
+/* Sized to the text column so "SteamTLDR gives the why." stays on one line */
+.hero-title { margin: 0 0 1.25rem; font-size: clamp(2.3rem, 7.9cqi, 4rem); line-height: 1.08; letter-spacing: -0.01em; }
 .hero-title > span { display: block; }
 .hero-title, .hero-title > span { text-wrap: balance; }
 .accent-word { color: var(--accent-word); font-style: normal; }
@@ -425,7 +428,7 @@ main.pill-main { margin-left: 0; padding: 0; }
 .hero-card-picks button::before { right: 0; background: color-mix(in srgb, var(--text) 18%, transparent); }
 .hero-card-picks button:hover::before { background: color-mix(in srgb, var(--text) 32%, transparent); }
 .hero-pick-fill { width: 0; background: var(--accent); }
-.hero-card-picks [aria-pressed="true"] .hero-pick-fill { animation: pick-fill 7s linear forwards; }
+.hero-card-picks [aria-pressed="true"] .hero-pick-fill { animation: pick-fill 5s linear forwards; }
 .hero-card.paused .hero-pick-fill { animation-play-state: paused; }
 .hero-card-pause { display: flex; align-items: center; justify-content: center; width: 1.75rem; height: 1.75rem; padding: 0; border: 0; border-radius: 999px;
   background: color-mix(in srgb, var(--text) 9%, transparent); color: inherit; cursor: pointer; }
@@ -552,6 +555,7 @@ main.pill-main { margin-left: 0; padding: 0; }
   .hero .buttons .button.icon { flex: none; padding: 0; }
   .scroll-hint { display: none; }
   .hero-card-themes { grid-template-columns: minmax(0, 1fr); gap: 0.5rem; }
+  .hero .buttons .button-group { flex: 1 1 100%; }
   .hero-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .hero-stats > div { padding: 0 0.6rem; }
   .hero-stats dd { font-size: 1rem; }

@@ -67,15 +67,14 @@ const sections = [
     items: popularGames.map((game) => ({ game, figure: compact.format(game.summary.total_reviews), unit: "reviews" })) },
 ];
 
-// Headline numbers shown under the hero buttons as (label, value)
+// Hero stats
 const stats = [
   ["Games analyzed", games.length, "dots"],
   ["Reviews analyzed", sampledReviews, "bars"],
   ["English reviews on Steam", steamReviews, "share"],
 ];
 
-// Small graphics for the stats: one dot per game, bars for how many reviews each game has in the sample (biggest to smallest, 24 steps),
-// and the share of Steam's reviews that we analyzed
+// Stat graphics
 const sampleSizes = games.map((game) => game.sampled_reviews).sort((a, b) => b - a);
 const bars = Array.from({ length: 24 }, (_, i) => sampleSizes[Math.floor((i * sampleSizes.length) / 24)] / sampleSizes[0]);
 const shareOfSteam = sampledReviews / steamReviews;
@@ -90,15 +89,17 @@ const cards = await Promise.all(heroCards(games, summaries).map(async (card) => 
     <div class="hero-backdrop" aria-hidden="true"><HeroPattern /></div>
     <div class="hero-inner">
       <div class="hero-text">
-        <h1 class="hero-title">A score tells you what. <span>SteamTLDR shows <em class="accent-word">why</em>.</span></h1>
+        <h1 class="hero-title">Steam gives a score. <span>SteamTLDR gives the <em class="accent-word">why</em>.</span></h1>
         <p class="hero-lede">
-          What players love, what they complain about, and how opinion is changing, boiled down from thousands of reviews you don't have to read.
+          The praise, the complaints and where opinion is heading, pulled from thousands of player reviews so you don't have to read them.
         </p>
         <div class="buttons">
           <a class="button primary" href="/games/"><Gamepad2 />Browse games</a>
-          <a class="button secondary" href="/faq/"><CircleHelp />FAQ</a>
-          <a class="button secondary icon" href="https://github.com/jntm7/steam-tldr" target="_blank" rel="noreferrer" aria-label="Source on GitHub" title="Source on GitHub"><GithubIcon aria-hidden="true" /></a>
-          <a class="button secondary icon" href="https://huggingface.co/jntam/steamtldr" target="_blank" rel="noreferrer" aria-label="Model on Hugging Face" title="Model on Hugging Face"><HuggingFaceIcon aria-hidden="true" /></a>
+          <div class="button-group">
+            <a class="button secondary" href="/faq/"><CircleHelp />FAQ</a>
+            <a class="button secondary icon" href="https://github.com/jntm7/steam-tldr" target="_blank" rel="noreferrer" aria-label="Source on GitHub" title="Source on GitHub"><GithubIcon aria-hidden="true" /></a>
+            <a class="button secondary icon" href="https://huggingface.co/jntam/steamtldr" target="_blank" rel="noreferrer" aria-label="Model on Hugging Face" title="Model on Hugging Face"><HuggingFaceIcon aria-hidden="true" /></a>
+          </div>
         </div>
         <dl class="hero-stats">
           {stats.map(([label, value, kind]) => (
@@ -119,7 +120,7 @@ const cards = await Promise.all(heroCards(games, summaries).map(async (card) => 
       </div>
       {cards.length > 0 && <HeroReport cards={cards} client:visible />}
     </div>
-    <a class="scroll-hint" href="#rows"><span>Scroll</span><ChevronDown aria-hidden="true" /></a>
+    <a class="scroll-hint" href="#rows"><span>Scroll to Explore</span><ChevronDown aria-hidden="true" /></a>
   </section>
 
   <div class="page-width page-content" id="rows">
