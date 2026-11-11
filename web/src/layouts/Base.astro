@@ -11,6 +11,10 @@ const current = (href) => here === href || (href === "/games/" && here.startsWit
 
 // Theme choices as (key, label, icon)
 const themes = [["light", "Light", Sun], ["dark", "Dark", Moon], ["system", "System", Monitor]];
+
+// Dev-only update button, left out of the built site
+const DevRefresh = import.meta.env.DEV ? (await import("../components/DevRefresh.astro")).default : null;
+const gameId = here.match(/^\/game\/(\d+)\/$/)?.[1];
 ---
 
 <!doctype html>
@@ -32,11 +36,11 @@ const themes = [["light", "Light", Sun], ["dark", "Dark", Moon], ["system", "Sys
   </head>
   <body>
     <header class="topbar">
-      <a href="/"><img src="/logo.svg" alt="SteamTLDR" /></a>
+      <a href="/"><img src="/logo.svg" alt="SteamTLDR" width="264" height="64" /></a>
       <button class="menu-button" aria-label="Menu"><Menu size={26} /></button>
     </header>
     <aside class="sidebar">
-      <a class="logo" href="/"><img src="/logo.svg" alt="SteamTLDR" /></a>
+      <a class="logo" href="/"><img src="/logo.svg" alt="SteamTLDR" width="264" height="64" /></a>
       <nav class="pages">
         {pages.map(([href, label, Icon]) => (
           <a href={href} aria-current={current(href) ? "page" : undefined}><Icon />{label}</a>
@@ -44,6 +48,7 @@ const themes = [["light", "Light", Sun], ["dark", "Dark", Moon], ["system", "Sys
       </nav>
       <slot name="sidebar" />
       <div class="sidebar-footer">
+        {DevRefresh && <DevRefresh appid={gameId} />}
         <div class="theme-switch" role="group" aria-label="Theme">
           {themes.map(([key, label, Icon]) => (
             <button data-theme-choice={key} title={`${label} theme`} aria-label={`${label} theme`}><Icon size={20} /></button>

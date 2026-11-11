@@ -1,0 +1,70 @@
+---
+import { RefreshCw } from "lucide-react";
+
+const { appid } = Astro.props;
+---
+
+<button class="dev-refresh-open" type="button"><RefreshCw size={16} />Refresh data</button>
+
+<dialog class="dev-refresh-dialog" data-appid={appid}>
+  <h2>Refresh review data</h2>
+  <p>Re-fetches reviews from Steam and rewrites site_data/. This can take a long time; you can close this and reopen it later.</p>
+  <div class="dev-refresh-buttons">
+    {appid && <button type="button" data-scope="game">This game</button>}
+    <button type="button" data-scope="stale">Stale games (30+ days old)</button>
+    <button type="button" data-scope="all">All games</button>
+  </div>
+  <div class="dev-refresh-progress" hidden>
+    <progress max="100" value="0"></progress>
+    <p class="dev-refresh-status"></p>
+    <pre class="dev-refresh-log"></pre>
+  </div>
+  <button class="dev-refresh-close" type="button">Close</button>
+</dialog>
+
+<script>
+  const dialog = document.querySelector(".dev-refresh-dialog");
+  const progress = dialog.querySelector(".dev-refresh-progress");
+  const bar = progress.querySelector("progress");
+  const status = progress.querySelector(".dev-refresh-status");
+  const log = progress.querySelector(".dev-refresh-log");
+  const scopeButtons = dialog.querySelectorAll("[data-scope]");
+  let timer;
+
+  // Fill the bar from the job: games finished out of the total, empty bar (spinning) before the first game starts
+  function show(job) {
+    progress.hidden = !job.label;
+    if (job.running) {
+      if (job.total) bar.value = (job.done / job.total) * 100;
+      else bar.removeAttribute("value");
+      status.textContent = job.total ? `${job.label}: ${job.done} of ${job.total} done, now ${job.current}` : `${job.label}: starting`;
+    } else if (job.label) {
+      bar.value = job.exitCode === 0 ? 100 : bar.value;
+      status.textContent = job.exitCode === 0 ? `${job.label}: done. Reload the page to see the new data.` : `${job.label}: failed`;
+    }
+    log.textContent = job.log.slice(-8).join("\n");
+    for (const button of scopeButtons) button.disabled = job.running;
+    if (!job.running) clearInterval(timer);
+  }
+
+  // Ask the dev server how the job is going, and keep asking while it runs
+  async function poll() {
+    const job = await (await fetch("/__dev/refresh")).json();
+    show(job);
+    if (job.running) { clearInterval(timer); timer = setInterval(poll, 1500); }
+  }
+
+  document.querySelector(".dev-refresh-open").addEventListener("click", () => { dialog.showModal(); poll(); });
+  dialog.querySelector(".dev-refresh-close").addEventListener("click", () => { clearInterval(timer); dialog.close(); });
+
+  for (const button of scopeButtons) {
+    button.addEventListener("click", async () => {
+      const body = { scope: button.dataset.scope };
+      if (body.scope === "game") body.appid = Number(dialog.dataset.appid);
+      const response = await fetch("/__dev/refresh", { method: "POST", body: JSON.stringify(body) });
+      if (!response.ok) { progress.hidden = false; status.textContent = (await response.json()).error; return; }
+      show(await response.json());
+      timer = setInterval(poll, 1500);
+    });
+  }
+</script>
