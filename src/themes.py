@@ -36,6 +36,8 @@ THEMES = {
                    "soulslike", "souls-like"],
     "developers & updates": ["dev", "devs", "developer", "developers", "update", "updates", "patch", "patches",
                              "publisher", "roadmap", "support team", "customer support"],
+    "mods & customization": ["mod", "mods", "modding", "modded", "modders", "mod support", "workshop", "steam workshop",
+                             "customization", "customisation", "customize", "customise", "level editor", "map editor"],
     "accounts & launchers": ["account", "accounts", "psn", "launcher", "ea app", "epic games", "drm", "kernel",
                              "always online", "login", "log in"],
 }

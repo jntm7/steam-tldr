@@ -1,5 +1,5 @@
 import {
-  BookOpen, Bug, Gamepad2, Gauge, KeyRound, Layers, Music, Palette, Server, Shapes, ShieldX, Skull, Swords, Tag, Users, Wrench,
+  BookOpen, Bug, Gamepad2, Gauge, KeyRound, Layers, Music, Palette, Puzzle, Server, Shapes, ShieldX, Skull, Swords, Tag, Users, Wrench,
 } from "lucide-react";
 
 // Icon for each theme
@@ -18,6 +18,7 @@ const THEME_ICONS = {
   "content & grind": Layers,
   "difficulty": Skull,
   "developers & updates": Wrench,
+  "mods & customization": Puzzle,
   "accounts & launchers": KeyRound,
 };
 

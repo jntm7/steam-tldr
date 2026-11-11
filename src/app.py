@@ -200,6 +200,7 @@ THEME_ICONS = {
     "content & grind": "stacks",
     "difficulty": "skull",
     "developers & updates": "build",
+    "mods & customization": "extension",
     "accounts & launchers": "key",
 }
 
