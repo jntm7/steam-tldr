@@ -1,0 +1,15 @@
+---
+import ChipList from "./ChipList.astro";
+
+// Who made the game, when it came out and its genres, as ruled rows of label and text
+const { rows } = Astro.props;
+---
+
+<dl class="facts">
+  {rows.map(([label, items, limit]) => (
+    <div class="fact">
+      <dt>{label}</dt>
+      <dd><ChipList items={items} limit={limit ?? 4} tone="inline" label={label} /></dd>
+    </div>
+  ))}
+</dl>

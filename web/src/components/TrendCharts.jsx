@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Bar, BarChart, CartesianGrid, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { CHART_COLOR, COMPLAINT_COLOR, formatCount, monthName } from "../lib/games.js";
+import { useSectionReveal } from "../lib/useSectionReveal.js";
 
 // Range choices as label -> points shown (the last point is the last 30 days)
 const RANGES = { "All time": null, "Last 2 years": 25, "Last 12 months": 13 };
@@ -34,6 +35,7 @@ function FlagDot({ cx, cy, payload }) {
 // Monthly percent positive with flagged months marked, and monthly review counts below; hovering either shows the top chart's tooltip
 export default function TrendCharts({ points, overall }) {
   const [range, setRange] = useState("All time");
+  const { ref, go, animate } = useSectionReveal();
   const shown = RANGES[range] ? points.slice(-RANGES[range]) : points;
 
   const step = tickStep(shown.length);
@@ -45,7 +47,7 @@ export default function TrendCharts({ points, overall }) {
   const margin = { top: 8, right: 8, bottom: 0, left: 0 };
 
   return (
-    <div className="chart">
+    <div className="chart" ref={ref}>
       <div className="chart-controls">
         <div className="segmented" role="group" aria-label="Range">
           {Object.keys(RANGES).map((label) => (
@@ -59,6 +61,8 @@ export default function TrendCharts({ points, overall }) {
         </div>
       </div>
 
+      {!go ? <div style={{ height: 420 }} /> : (
+      <>
       <ResponsiveContainer width="100%" height={280}>
         <LineChart data={shown} syncId="trend" margin={margin}>
           <CartesianGrid vertical={false} />
@@ -66,7 +70,7 @@ export default function TrendCharts({ points, overall }) {
           <YAxis domain={[0, 100]} ticks={[0, 25, 50, 75, 100]} tickFormatter={(value) => `${value}%`} width={52} tickLine={false} axisLine={false} />
           <ReferenceLine y={overall} strokeDasharray="4 4" className="chart-reference" />
           <Tooltip content={<TrendTooltip />} cursor={{ className: "chart-cursor" }} />
-          <Line dataKey="pct" stroke={CHART_COLOR} strokeWidth={2} dot={FlagDot} activeDot={{ r: 5, fill: CHART_COLOR }} isAnimationActive={false} />
+          <Line dataKey="pct" stroke={CHART_COLOR} strokeWidth={2} dot={FlagDot} activeDot={{ r: 5, fill: CHART_COLOR }} isAnimationActive={animate} animationDuration={1500} animationEasing="ease-out" />
         </LineChart>
       </ResponsiveContainer>
 
@@ -76,9 +80,11 @@ export default function TrendCharts({ points, overall }) {
           <XAxis {...xAxis} />
           <YAxis tickFormatter={(value) => compact.format(value)} width={52} tickLine={false} axisLine={false} />
           <Tooltip content={() => null} cursor={{ className: "chart-band" }} />
-          <Bar dataKey="reviews" fill={CHART_COLOR} radius={[4, 4, 0, 0]} maxBarSize={24} isAnimationActive={false} />
+          <Bar dataKey="reviews" fill={CHART_COLOR} radius={[4, 4, 0, 0]} maxBarSize={24} isAnimationActive={animate} animationDuration={1100} animationEasing="ease-out" />
         </BarChart>
       </ResponsiveContainer>
+      </>
+      )}
     </div>
   );
 }

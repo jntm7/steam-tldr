@@ -1,6 +1,6 @@
 ---
 import { ChartLine, Gamepad2, LayoutDashboard, Lightbulb, List, TrendingDown, TriangleAlert, Zap } from "lucide-react";
-import Base from "../layouts/Base.astro";
+import Page from "../layouts/Page.astro";
 import EventList from "../components/EventList.jsx";
 import EventTimeline from "../components/EventTimeline.jsx";
 import { games, settings } from "../lib/data.js";
@@ -16,91 +16,88 @@ const worst = events.reduce((best, event) => (event.dropPoints > best.dropPoints
 const biggest = events.reduce((best, event) => (event.extraNegatives > best.extraNegatives ? event : best), events[0]);
 const gamesAffected = new Set(events.map((event) => event.appid)).size;
 
-// Sidebar outline as (anchor, heading, icon), matching the headings below
-const sections = [
-  ["overview", "Overview", LayoutDashboard],
-  ["event-list", "Event list", List],
-  ["when-they-happened", "When they happened", ChartLine],
-  ["how-its-detected", "How it's detected", Lightbulb],
+// Page outline as (anchor, heading), matching the headings below
+const dots = [
+  ["overview", "Overview"],
+  ["event-list", "Events"],
+  ["when-they-happened", "Timeline"],
+  ["how-its-detected", "Detection"],
 ];
 ---
 
-<Base title="Outliers">
-  <div slot="sidebar">
-    <div class="outline-title">On this page</div>
-    <nav class="outline">
-      {sections.map(([anchor, label, Icon]) => <a href={`#${anchor}`}><Icon color={anchor === "how-its-detected" ? PRAISE_COLOR : COMPLAINT_COLOR} /><span>{label}</span></a>)}
-    </nav>
-  </div>
-
-  <h1>Outliers</h1>
-  <p class="caption">Months when a game got a surge of negative reviews or its score dropped sharply, across every game analyzed.</p>
+<Page title="Outliers" kicker="Outliers" dots={dots}
+  lede="Months when a game got a surge of negative reviews or its score dropped sharply, across every game analyzed.">
+  <Fragment slot="heading">Review bombs and <em class="accent-word bad">score drops</em></Fragment>
 
   {events.length === 0 ? (
     <p>No flagged events in any game.</p>
   ) : (
     <>
-      <hr />
-      <h2 id="overview"><LayoutDashboard color={COMPLAINT_COLOR} />Overview</h2>
-      <p class="caption">How many events there are, and which were the most dramatic</p>
-      <div class="stats">
-        <div>
-          <div class="cell-label"><TriangleAlert />Flagged events</div>
-          <div class="cell-stat">{events.length}</div>
-          <div class="cell-sub">{surges} negative surges and {events.length - surges} score drops</div>
+      <section class="panel" id="overview" data-reveal>
+        <h2><LayoutDashboard color={COMPLAINT_COLOR} />Overview</h2>
+        <p class="caption">How many events there are, and which were the most dramatic</p>
+        <div class="stats">
+          <div>
+            <div class="cell-label"><TriangleAlert />Flagged events</div>
+            <div class="cell-stat"><span class="sr-only">{events.length}</span><span aria-hidden="true" data-count={events.length}>{events.length}</span></div>
+            <div class="cell-sub">{surges} negative surges and {events.length - surges} score drops</div>
+          </div>
+          <div>
+            <div class="cell-label"><Gamepad2 />Games affected</div>
+            <div class="cell-stat">{gamesAffected} of {games.length}</div>
+          </div>
+          <div>
+            <div class="cell-label"><TrendingDown />Biggest drop</div>
+            <div class="cell-stat word">{worst.game}</div>
+            <div class="cell-sub">▼ {worst.dropPoints.toFixed(0)} pts, {worst.when}: {worst.pct.toFixed(0)}% positive vs a usual {worst.usualPct.toFixed(0)}%</div>
+          </div>
+          <div>
+            <div class="cell-label"><Zap />Most extra negatives</div>
+            <div class="cell-stat"><span class="sr-only">{formatCount(biggest.extraNegatives)}</span><span aria-hidden="true" data-count={biggest.extraNegatives}>{formatCount(biggest.extraNegatives)}</span></div>
+            <div class="cell-sub">{biggest.game}, {biggest.when}</div>
+          </div>
         </div>
-        <div>
-          <div class="cell-label"><Gamepad2 />Games affected</div>
-          <div class="cell-stat">{gamesAffected} of {games.length}</div>
-        </div>
-        <div>
-          <div class="cell-label"><TrendingDown />Biggest drop</div>
-          <div class="cell-stat word">{worst.game}</div>
-          <div class="cell-sub">▼ {worst.dropPoints.toFixed(0)} pts, {worst.when}: {worst.pct.toFixed(0)}% positive vs a usual {worst.usualPct.toFixed(0)}%</div>
-        </div>
-        <div>
-          <div class="cell-label"><Zap />Most extra negatives</div>
-          <div class="cell-stat">{formatCount(biggest.extraNegatives)}</div>
-          <div class="cell-sub">{biggest.game}, {biggest.when}</div>
-        </div>
-      </div>
+      </section>
 
-      <hr />
-      <h2 id="event-list"><List color={COMPLAINT_COLOR} />Event list</h2>
-      <p class="caption">Select a game to open its page. Runs of consecutive flagged months count as one event.</p>
-      <EventList events={events} client:load />
+      <section class="panel" id="event-list" data-reveal>
+        <h2><List color={COMPLAINT_COLOR} />Events</h2>
+        <p class="caption">Select a game to open its page. Runs of consecutive flagged months count as one event.</p>
+        <EventList events={events} client:load />
+      </section>
 
-      <hr />
-      <h2 id="when-they-happened"><ChartLine color={COMPLAINT_COLOR} />When they happened</h2>
-      <p class="caption">Each dot is an event. Higher means a bigger fall in score, and bigger means more reviews.</p>
-      <EventTimeline events={events} client:visible />
+      <section class="panel" id="when-they-happened" data-reveal>
+        <h2><ChartLine color={COMPLAINT_COLOR} />Timeline</h2>
+        <p class="caption">Each dot is an event. Higher means a bigger fall in score, and bigger means more reviews.</p>
+        <EventTimeline events={events} client:visible />
+      </section>
     </>
   )}
 
-  <hr />
-  <h2 id="how-its-detected"><Lightbulb color={PRAISE_COLOR} />How it's detected</h2>
-  <p class="caption">The rules behind the flags, and what to keep in mind when reading them</p>
-  <ul>
-    <li>
-      A <strong>negative surge</strong> (often called a review bomb) is a month where negative reviews are at least <strong>{s.surge_negative_ratio}× the usual</strong> and at least <strong>{s.surge_extra_negatives} more than usual</strong>, with a score at least <strong>{s.surge_score_drop} points below the usual</strong>. Usual means the median of the previous {s.flag_lookback_months} months.
-    </li>
-    <li>
-      A <strong>score drop</strong> is a month at least <strong>{s.drop_score_points} points below the usual</strong> with {formatCount(s.drop_min_reviews)} or more reviews but without that surge of negatives: a slide in opinion, or a controversy that didn't bring a flood.
-    </li>
-    <li>A game needs at least 3 earlier months to be judged, so launch months are never flagged.</li>
-    <li>Runs of consecutive flagged months are shown as one event. The last {s.recent_days} days are checked the same way, so a flag there can still be unfolding.</li>
-    <li>Review counts and scores are Steam's exact totals for each month, not samples.</li>
-  </ul>
-  <p><strong>What a flag can and can't tell you</strong></p>
-  <ul>
-    <li>
-      It tells you something happened: a controversy, a bad update, a launch problem, a change in how the game is sold.
-      Helldivers 2's May 2024 flag, for example, is the PlayStation Network sign-in requirement.
-    </li>
-    <li>
-      It can't tell whether the reviews are off-topic or deserved. Steam's own off-topic filter didn't change the totals even for that Helldivers 2 episode,
-      so flags are found from review counts and scores alone.
-    </li>
-    <li>A steady game with many reviews can still be flagged when a real problem lands. Check the game's page for what players were saying at the time.</li>
-  </ul>
-</Base>
+  <section class="panel" id="how-its-detected" data-reveal>
+    <h2><Lightbulb color={PRAISE_COLOR} />Detection</h2>
+    <p class="caption">The rules behind the flags, and what to keep in mind when reading them</p>
+    <ul>
+      <li>
+        A <strong>negative surge</strong> (often called a review bomb) is a month where negative reviews are at least <strong>{s.surge_negative_ratio}× the usual</strong> and at least <strong>{s.surge_extra_negatives} more than usual</strong>, with a score at least <strong>{s.surge_score_drop} points below the usual</strong>. Usual means the median of the previous {s.flag_lookback_months} months.
+      </li>
+      <li>
+        A <strong>score drop</strong> is a month at least <strong>{s.drop_score_points} points below the usual</strong> with {formatCount(s.drop_min_reviews)} or more reviews but without that surge of negatives: a slide in opinion, or a controversy that didn't bring a flood.
+      </li>
+      <li>A game needs at least 3 earlier months to be judged, so launch months are never flagged.</li>
+      <li>Runs of consecutive flagged months are shown as one event. The last {s.recent_days} days are checked the same way, so a flag there can still be unfolding.</li>
+      <li>Review counts and scores are Steam's exact totals for each month, not samples.</li>
+    </ul>
+    <p><strong>What a flag can and can't tell you</strong></p>
+    <ul>
+      <li>
+        It tells you something happened: a controversy, a bad update, a launch problem, a change in how the game is sold.
+        Helldivers 2's May 2024 flag, for example, is the PlayStation Network sign-in requirement.
+      </li>
+      <li>
+        It can't tell whether the reviews are off-topic or deserved. Steam's own off-topic filter didn't change the totals even for that Helldivers 2 episode,
+        so flags are found from review counts and scores alone.
+      </li>
+      <li>A steady game with many reviews can still be flagged when a real problem lands. Check the game's page for what players were saying at the time.</li>
+    </ul>
+  </section>
+</Page>

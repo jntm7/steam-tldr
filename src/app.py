@@ -534,7 +534,8 @@ def library_games() -> list[dict]:
 # One theme as an icon, name, percent bar and example quote
 def theme_row(row, scale: float) -> str:
     icon = THEME_ICONS.get(row.theme, "circle")
-    quote = f'<div class="theme-quote">“{html.escape(row.example)}”</div>' if row.example else ""
+    example = row.example if hasattr(row, "example") else next(iter(row.examples), None)
+    quote = f'<div class="theme-quote">“{html.escape(example)}”</div>' if example else ""
     return (f'<div class="theme-row">'
             f'<div class="theme-head"><span class="theme-icon">{icon}</span>{html.escape(row.theme.capitalize())}'
             f'<span class="theme-pct">{row.pct:.0f}%</span></div>'

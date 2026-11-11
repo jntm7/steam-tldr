@@ -1,0 +1,24 @@
+---
+import { Monitor, Moon, Sun } from "lucide-react";
+
+const { size = 20, class: className } = Astro.props;
+
+// Theme choices as (key, label, icon)
+const themes = [["light", "Light", Sun], ["dark", "Dark", Moon], ["system", "System", Monitor]];
+---
+
+<div class:list={["theme-switch", className]} role="group" aria-label="Theme">
+  {themes.map(([key, label, Icon]) => (
+    <button type="button" data-theme-choice={key} title={`${label} theme`} aria-label={`${label} theme`}><Icon size={size} /></button>
+  ))}
+</div>
+
+<script>
+  // Switch light/dark/system and remember it in this browser
+  for (const button of document.querySelectorAll("[data-theme-choice]")) {
+    button.addEventListener("click", () => {
+      document.documentElement.dataset.theme = button.dataset.themeChoice;
+      try { localStorage.setItem("steamtldr_theme", button.dataset.themeChoice); } catch {}
+    });
+  }
+</script>

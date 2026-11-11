@@ -1,0 +1,53 @@
+---
+import { COMPLAINT_COLOR, MONTHS, formatCount, tableRows } from "../lib/games.js";
+import { summaries } from "../lib/data.js";
+
+// A worked example for the FAQ: the months around a real flagged event, drawn as bars with the "usual" level as a dashed line.
+// kind "surge" shows negative reviews per month, "drop" shows percent positive
+const { appid, label, kind, title } = Astro.props;
+const game = summaries.find((summary) => summary.appid === appid);
+const months = tableRows(game.trend);
+const event = tableRows(game.events).find((row) => row.label === label);
+const at = months.findIndex((month) => month.label === label);
+const shown = months.slice(Math.max(0, at - 6), at + 3);
+const surge = kind === "surge";
+const values = shown.map((month) => (surge ? month.negative : month.pct_positive));
+const usual = surge ? event.usual_negative : event.usual_pct;
+const top = surge ? Math.max(...values) * 1.15 : 100;
+
+const WIDTH = 360;
+const HEIGHT = 150;
+const slot = WIDTH / shown.length;
+const y = (value) => HEIGHT - (value / top) * HEIGHT;
+const name = (month) => MONTHS[Number(month.label.slice(5)) - 1];
+const compact = new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 });
+
+const ratio = event.negative / event.usual_negative;
+const facts = surge
+  ? [`${formatCount(event.negative)} negative reviews, ${ratio.toFixed(1)}× the usual ${formatCount(Math.round(event.usual_negative))}`,
+     `${formatCount(Math.round(event.extra_negatives))} more than usual`,
+     `${Math.round(event.pct_positive)}% positive against a usual ${Math.round(event.usual_pct)}%, ${Math.round(event.usual_pct - event.pct_positive)} points lower`]
+  : [`${formatCount(event.reviews)} reviews that month`,
+     `${Math.round(event.pct_positive)}% positive against a usual ${Math.round(event.usual_pct)}%, ${Math.round(event.usual_pct - event.pct_positive)} points lower`,
+     "Negative reviews did not at least double, so it counts as a score drop, not a surge"];
+---
+
+<figure class="event-example">
+  <figcaption class="event-title">{title}</figcaption>
+  <svg viewBox={`0 0 ${WIDTH} ${HEIGHT + 34}`} role="img" aria-label={`${title}: ${surge ? "negative reviews" : "percent positive"} by month`}>
+    {shown.map((month, i) => {
+      const flagged = month.label === label;
+      const value = values[i];
+      return (
+        <g>
+          <rect class={flagged ? "bar flagged" : "bar"} x={i * slot + slot * 0.18} width={slot * 0.64} y={y(value)} height={HEIGHT - y(value)} rx="2" fill={flagged ? COMPLAINT_COLOR : undefined} />
+          {flagged && <text x={i * slot + slot / 2} y={y(value) - 6} text-anchor="middle" class="bar-value">{surge ? compact.format(value) : `${Math.round(value)}%`}</text>}
+          <text x={i * slot + slot / 2} y={HEIGHT + 16} text-anchor="middle" class="bar-month">{name(month)}</text>
+        </g>
+      );
+    })}
+    <line x1="0" x2={WIDTH} y1={y(usual)} y2={y(usual)} class="usual-line" />
+    <text x="2" y={y(usual) - 5} class="usual-label">usual: {surge ? compact.format(Math.round(usual)) : `${Math.round(usual)}%`}</text>
+  </svg>
+  <ul class="event-facts">{facts.map((fact) => <li>{fact}</li>)}</ul>
+</figure>

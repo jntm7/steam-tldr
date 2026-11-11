@@ -1,31 +1,23 @@
 ---
-import { CircleHelp, Gamepad2, MessagesSquare, ScanText, TrendingUp, TriangleAlert } from "lucide-react";
-import Base from "../layouts/Base.astro";
-import GameCard from "../components/GameCard.jsx";
-import GithubIcon from "../assets/github.svg";
+import { ChevronDown, CircleHelp, Flame, Gamepad2, Sparkles, TrendingUp } from "lucide-react";
+import Landing from "../layouts/Landing.astro";
+import HomeSection from "../components/HomeSection.astro";
+import HeroPattern from "../components/HeroPattern.astro";
+import HeroReport from "../components/HeroReport.jsx";
 import { games, settings, summaries } from "../lib/data.js";
-import { withImages } from "../lib/images.js";
-import { formatCount, gameHref, gameName, tableRows } from "../lib/games.js";
+import { withWideBanner } from "../lib/images.js";
+import { heroCards } from "../lib/landing.js";
+import { formatCount, tableRows } from "../lib/games.js";
 
 // Trending needs this many reviews in the last 30 days, and this many earlier months to know the usual;
 // games with fewer months are new releases, listed apart from trending
 const TRENDING_MIN_REVIEWS = 500;
 const TRENDING_MIN_MONTHS = 3;
-const TRENDING_GAMES = 5;
+const ROW_GAMES = 5;
 
 // Headline numbers across every game
 const steamReviews = games.reduce((sum, game) => sum + (game.summary?.total_reviews ?? 0), 0);
 const sampledReviews = games.reduce((sum, game) => sum + game.sampled_reviews, 0);
-
-// Flagged events across every game, counting a run of consecutive months once
-const flagged = summaries.reduce((sum, game) => {
-  if (!game.events) return sum;
-  const episode = game.events.columns.indexOf("episode");
-  return sum + new Set(game.events.data.map((row) => row[episode])).size;
-}, 0);
-
-// The eight most reviewed games
-const popular = [...games].sort((a, b) => b.summary.total_reviews - a.summary.total_reviews).slice(0, 8);
 
 // Middle value of a list of numbers, or 0 for an empty list
 function median(values) {
@@ -55,63 +47,79 @@ const activity = summaries
 const newReleases = activity
   .filter((game) => game.isNew && game.recent >= TRENDING_MIN_REVIEWS)
   .sort((a, b) => b.recent - a.recent)
-  .slice(0, TRENDING_GAMES);
+  .slice(0, ROW_GAMES);
 const surgingGames = activity
   .filter((game) => game.surge > 1)
   .sort((a, b) => b.surge - a.surge)
-  .slice(0, TRENDING_GAMES);
+  .slice(0, ROW_GAMES);
+const popularGames = [...games].sort((a, b) => (b.summary?.total_reviews ?? 0) - (a.summary?.total_reviews ?? 0)).slice(0, ROW_GAMES);
 
-// The same games with small copies of their art
-const withArt = (list) => Promise.all(list.map(async (item) => ({ ...item, game: await withImages(item.game) })));
-const newCards = await withArt(newReleases);
-const surgingCards = await withArt(surgingGames);
-
-// Headline numbers as (label, icon, value)
-const stats = [
-  ["Games analyzed", Gamepad2, games.length],
-  ["Reviews analyzed", ScanText, sampledReviews],
-  ["English reviews on Steam", MessagesSquare, steamReviews],
-  ["Flagged events", TriangleAlert, flagged],
+// Each section with its games at full size, and one headline figure per game
+const compact = new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 });
+const withBanner = (list) => Promise.all(list.map(async (item) => ({ ...item, game: await withWideBanner(item.game) })));
+const sections = [
+  { id: "new", title: "New", Icon: Sparkles, caption: "Releases with the most reviews in the last 30 days",
+    items: (await withBanner(newReleases)).map(({ game, recent }) => ({ game, badge: "New", figure: compact.format(recent), unit: "reviews in 30 days" })) },
+  { id: "trending", title: "Trending", Icon: TrendingUp, caption: "Games getting more reviews than in their usual month",
+    items: (await withBanner(surgingGames)).map(({ game, surge }) => ({ game, figure: `${surge.toFixed(1)}×`, unit: "usual reviews" })) },
+  { id: "popular", title: "Popular", Icon: Flame, caption: "The most reviewed games on Steam in our library",
+    items: (await withBanner(popularGames.map((game) => ({ game })))).map(({ game }) => ({ game, figure: compact.format(game.summary.total_reviews), unit: "reviews" })) },
 ];
+
+// Headline numbers shown under the hero buttons as (label, value)
+const stats = [
+  ["Games analyzed", games.length, "dots"],
+  ["Reviews analyzed", sampledReviews, "bars"],
+  ["English reviews on Steam", steamReviews, "share"],
+];
+
+// Small graphics for the stats: one dot per game, bars for how many reviews each game has in the sample (biggest to smallest, 24 steps),
+// and the share of Steam's reviews that we analyzed
+const sampleSizes = games.map((game) => game.sampled_reviews).sort((a, b) => b - a);
+const bars = Array.from({ length: 24 }, (_, i) => sampleSizes[Math.floor((i * sampleSizes.length) / 24)] / sampleSizes[0]);
+const shareOfSteam = sampledReviews / steamReviews;
+
+// Hero report cards for a few games, each with its banner
+const cards = await Promise.all(heroCards(games, summaries).map(async (card) => ({ ...card, banner: (await withWideBanner(byAppid[card.appid])).wide })));
+
 ---
 
-<Base>
-  <div slot="sidebar">
-    <div class="outline-title">Popular Games</div>
-    <nav class="outline">
-      {popular.map((game) => <a href={gameHref(game.appid)}><TrendingUp /><span>{gameName(game)}</span></a>)}
-    </nav>
-  </div>
-
-  <h1>SteamTLDR</h1>
-  <p>
-    Steam shows one score. SteamTLDR shows <em>why</em>: what players love, what they complain about, and how opinion is changing,
-    boiled down from thousands of reviews you don't have to read.
-  </p>
-  <div class="buttons">
-    <a class="button primary" href="/games/"><Gamepad2 />Browse games</a>
-    <a class="button secondary" href="/faq/"><CircleHelp />FAQ</a>
-    <a class="button" href="https://github.com/jntm7/steam-tldr" target="_blank" rel="noreferrer" title="View the source on GitHub"><GithubIcon />GitHub</a>
-  </div>
-
-  <div class="stats">
-    {stats.map(([label, Icon, value]) => <div><div class="cell-label"><Icon />{label}</div><div class="cell-stat">{formatCount(value)}</div></div>)}
-  </div>
-
-  <div class="home-columns">
-    <section>
-      <h2>New</h2>
-      <p class="caption">Releases with the most reviews in the last 30 days</p>
-      <div class="home-library">
-        {newCards.map(({ game, recent }) => <GameCard game={game} eager badge="New" note={`${formatCount(recent)} reviews in 30 days`} />)}
+<Landing>
+  <section class="hero">
+    <div class="hero-backdrop" aria-hidden="true"><HeroPattern /></div>
+    <div class="hero-inner">
+      <div class="hero-text">
+        <h1 class="hero-title">A score tells you what. <span>SteamTLDR shows <em class="accent-word">why</em>.</span></h1>
+        <p class="hero-lede">
+          What players love, what they complain about, and how opinion is changing, boiled down from thousands of reviews you don't have to read.
+        </p>
+        <div class="buttons">
+          <a class="button primary" href="/games/"><Gamepad2 />Browse games</a>
+          <a class="button secondary" href="/faq/"><CircleHelp />FAQ</a>
+        </div>
+        <dl class="hero-stats">
+          {stats.map(([label, value, kind]) => (
+            <div>
+              <dt>{label}</dt>
+              {kind === "dots" && <div class="stat-graphic dots" aria-hidden="true">{Array.from({ length: games.length }, (_, i) => <i style={`--i: ${i}`}></i>)}</div>}
+              {kind === "bars" && <div class="stat-graphic bars" aria-hidden="true">{bars.map((height, i) => <i style={`--h: ${height.toFixed(3)}; --i: ${i}`}></i>)}</div>}
+              {kind === "share" && (
+                <div class="stat-graphic share" aria-hidden="true">
+                  <div class="share-track"><i style={`--share: ${(shareOfSteam * 100).toFixed(2)}%`}></i></div>
+                  <span>{(shareOfSteam * 100).toFixed(1)}% of them read</span>
+                </div>
+              )}
+              <dd><span class="sr-only">{formatCount(value)}</span><span aria-hidden="true" data-count={value}>{formatCount(value)}</span></dd>
+            </div>
+          ))}
+        </dl>
       </div>
-    </section>
-    <section>
-      <h2>Trending</h2>
-      <p class="caption">Games getting more reviews than in their usual month</p>
-      <div class="home-library">
-        {surgingCards.map(({ game, surge }) => <GameCard game={game} eager note={`${surge.toFixed(1)}× usual reviews`} />)}
-      </div>
-    </section>
+      {cards.length > 0 && <HeroReport cards={cards} client:visible />}
+    </div>
+    <a class="scroll-hint" href="#rows"><span>Scroll</span><ChevronDown aria-hidden="true" /></a>
+  </section>
+
+  <div class="page-width page-content" id="rows">
+    {sections.map((section) => <HomeSection {...section} />)}
   </div>
-</Base>
+</Landing>

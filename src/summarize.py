@@ -2,7 +2,7 @@ import argparse
 import matplotlib.pyplot as plt
 import pandas as pd
 import re
-from fetch import DATA_DIR, RECENT_DAYS, load_reviews
+from fetch import DATA_DIR, PLAYTIME_BUCKETS, RECENT_DAYS, load_reviews
 from matplotlib.ticker import FuncFormatter
 from model import clean, load_model
 from themes import summarize_themes
@@ -19,7 +19,10 @@ DROP_MIN_REVIEWS = 500
 
 # How much of each section the report shows
 TOP_THEMES = 5
-RECENT_THEMES = 3
+RECENT_THEMES = 5
+EXAMPLES_SHOWN = 3
+MIN_GROUP_REVIEWS = 100
+GROUP_THEMES = 3
 MIN_THEME_PCT = 5.0
 MIN_RECENT_REVIEWS = 100
 TREND_MONTHS = 12
@@ -82,18 +85,21 @@ def playtime_split(meta: dict) -> pd.DataFrame:
             for group, t in meta.get("playtime", {}).items()]
     return pd.DataFrame(rows, columns=["group", "reviews", "pct_positive"])
 
-# Pick a short, clear example clause for a theme, preferring ones whose review agrees
-def example_clause(mentions: pd.DataFrame, theme: str, praise: bool, used: set) -> str | None:
+# Pick up to `count` short, clear example clauses for a theme, preferring ones whose review agrees
+def example_clauses(mentions: pd.DataFrame, theme: str, praise: bool, used: set, count: int = 1) -> list[str]:
     rows = mentions[(mentions["theme"] == theme) & (mentions["positive"] == praise) & ~mentions["clause"].isin(used)
                     & ~mentions["clause"].str.contains(BLOCKED_WORDS)]
     words = rows["clause"].str.split().str.len()
     rows = rows[(words >= 6) & (words <= 25)]
-    if rows.empty:
-        return None
     rows = rows.assign(agrees=rows["voted_up"] == praise)
-    clause = rows.sort_values(["agrees", "prob_positive"], ascending=[False, not praise])["clause"].iloc[0]
-    used.add(clause)
-    return clause
+    clauses = rows.sort_values(["agrees", "prob_positive"], ascending=[False, not praise])["clause"].drop_duplicates().head(count).tolist()
+    used.update(clauses)
+    return clauses
+
+# Pick one example clause for a theme, or None
+def example_clause(mentions: pd.DataFrame, theme: str, praise: bool, used: set) -> str | None:
+    clauses = example_clauses(mentions, theme, praise, used)
+    return clauses[0] if clauses else None
 
 # The most common praised or complained-about themes, with an example each
 def top_themes(themes: pd.DataFrame, mentions: pd.DataFrame, praise: bool, count: int = TOP_THEMES) -> pd.DataFrame:
@@ -106,13 +112,39 @@ def top_themes(themes: pd.DataFrame, mentions: pd.DataFrame, praise: bool, count
         "example": [example_clause(mentions, theme, praise, used) for theme in top.index],
     })
 
-# Top complaints from the last 30 days, or None if there are too few reviews
-def recent_complaints(df: pd.DataFrame, recent: pd.Series, model) -> pd.DataFrame | None:
+# Complaint themes in the last 30 days next to their all-time share, with a few quotes each, or None if there are too few reviews.
+# Shows the biggest recent themes plus the biggest all-time ones, so themes that faded still appear
+def recent_complaints(df: pd.DataFrame, recent: pd.Series, model, all_time: pd.DataFrame) -> pd.DataFrame | None:
     reviews = clean(df[df["sample"] == "recent"].drop_duplicates("recommendationid").reset_index(drop=True))
     if len(reviews) < MIN_RECENT_REVIEWS or not recent["reviews"]:
         return None
     themes, mentions = summarize_themes(reviews, model, recent["positive"] / recent["reviews"])
-    return top_themes(themes, mentions, praise=False, count=RECENT_THEMES)
+    recent_pct = themes["complaint_pct"].reindex(all_time.index).fillna(0)
+    big_recent = themes[themes["complaint_pct"] >= MIN_THEME_PCT]["complaint_pct"].nlargest(RECENT_THEMES).index
+    big_all_time = all_time[all_time["complaint_pct"] >= MIN_THEME_PCT]["complaint_pct"].nlargest(RECENT_THEMES).index
+    shown = pd.DataFrame({"recent": themes["complaint_pct"], "all_time": all_time["complaint_pct"]}).fillna(0).loc[big_recent.union(big_all_time)]
+    shown = shown.assign(top=shown.max(axis=1)).sort_values("top", ascending=False).head(RECENT_THEMES + 1)
+    used: set = set()
+    return pd.DataFrame({
+        "theme": shown.index,
+        "pct": shown["recent"].to_numpy(),
+        "all_time_pct": shown["all_time"].to_numpy(),
+        "examples": [example_clauses(mentions, theme, False, used, EXAMPLES_SHOWN) for theme in shown.index],
+    })
+
+# Top complaint themes for each playtime group (hours at review), weighted to Steam's exact score for that group
+def playtime_complaints(reviews: pd.DataFrame, meta: dict, model) -> pd.DataFrame:
+    rows = []
+    for group, (low, high) in PLAYTIME_BUCKETS.items():
+        hours = reviews["playtime_at_review_h"]
+        sample = reviews[(hours >= low) & ((hours < high) if high else True)].reset_index(drop=True)
+        totals = meta.get("playtime", {}).get(group)
+        if len(sample) < MIN_GROUP_REVIEWS or not totals or not sample["voted_up"].nunique() == 2:
+            continue
+        themes, _ = summarize_themes(sample, model, totals["positive"] / (totals["positive"] + totals["negative"]))
+        top = themes[themes["complaint_pct"] >= MIN_THEME_PCT]["complaint_pct"].nlargest(GROUP_THEMES)
+        rows += [{"group": group, "theme": theme, "pct": pct} for theme, pct in top.items()]
+    return pd.DataFrame(rows, columns=["group", "theme", "pct"])
 
 # Reviews short enough to show whole and free of blocked words, with Steam's formatting tags removed
 def readable_reviews(reviews: pd.DataFrame) -> pd.DataFrame:
@@ -157,7 +189,8 @@ def build_summary(appid: int, refresh: bool = False) -> dict | None:
         "playtime": playtime_split(meta),
         "praise": top_themes(themes, mentions, praise=True),
         "complaints": top_themes(themes, mentions, praise=False),
-        "recent_complaints": recent_complaints(df, trend.iloc[-1], model),
+        "recent_complaints": recent_complaints(df, trend.iloc[-1], model, themes),
+        "playtime_complaints": playtime_complaints(reviews, meta, model),
         "sampled_reviews": len(reviews),
         "shown_reviews": readable_reviews(reviews),
     }
@@ -195,7 +228,8 @@ def print_summary(summary: dict) -> None:
         if rows.empty:
             print("  (nothing stands out)")
         for row in rows.itertuples():
-            example = f'  "{shorten(row.example)}"' if row.example else ""
+            quotes = [row.example] if hasattr(row, "example") and row.example else list(getattr(row, "examples", []))
+            example = f'  "{shorten(quotes[0])}"' if quotes else ""
             print(f"  {row.theme:<24} {row.pct:4.0f}% of reviews{example}")
 
     print("\nBy playtime at review")

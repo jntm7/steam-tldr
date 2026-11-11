@@ -16,3 +16,8 @@ export async function withImages(game) {
   ]);
   return { ...game, cover, banner, thumb };
 }
+
+// A game plus its banner at full size (460x215), for the wide home page cards
+export async function withWideBanner(game) {
+  return { ...game, wide: await resized(game.header_image, 460, 215) };
+}
