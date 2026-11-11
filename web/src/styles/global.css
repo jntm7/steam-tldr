@@ -223,7 +223,6 @@ hr { margin: 1.5rem 0; border: 0; border-top: 1px solid var(--border); }
 .theme-usual { font-size: 0.8rem; font-weight: 400; color: var(--muted); }
 .theme-track.usual { margin-top: 0; height: 5px; }
 .theme-track.usual .theme-bar { background: color-mix(in srgb, var(--text) 38%, transparent); }
-.complaint-verdict { text-wrap: balance; margin: 0.5rem 0 0.75rem; font-size: 1.05rem; font-weight: 700; }
 .complaint-legend { display: flex; gap: 1rem; margin-bottom: 1rem; font-size: 0.82rem; color: var(--muted); }
 .complaint-legend .key { display: inline-block; width: 0.7rem; height: 0.35rem; margin-right: 0.4rem; border-radius: 2px; vertical-align: middle; }
 .complaint-legend .key.usual { background: color-mix(in srgb, var(--text) 38%, transparent); }
@@ -633,7 +632,8 @@ main.pill-main { margin-left: 0; padding: 0; }
 .theme-track, .theme-bar { height: 3px; border-radius: 0; }
 .theme-track { margin: 0.5rem 0; }
 .theme-pct { font-family: var(--mono); font-size: 0.9rem; }
-.change-badge { padding: 0; border: 0; font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; }
+.theme-pct { display: inline-flex; align-items: center; gap: 0.3rem; }
+.change-badge { margin-right: 0.4rem; padding: 0.1rem 0.6rem; border: 1px solid var(--border); border-radius: 999px; font-family: var(--mono); font-size: 0.62rem; font-weight: 400; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
 .complaint-legend { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; }
 .playtime-complaints h3 { font-family: var(--mono); font-size: 0.68rem; font-weight: 400; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
 .group-grid { gap: 0; }
