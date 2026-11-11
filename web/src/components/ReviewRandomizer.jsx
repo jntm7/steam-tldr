@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Dices, ThumbsDown, ThumbsUp } from "lucide-react";
+import { Shuffle, ThumbsDown, ThumbsUp } from "lucide-react";
 import { COMPLAINT_COLOR, MONTHS, PRAISE_COLOR, formatCount } from "../lib/games.js";
 
 // Filter choices as label -> which reviews pass
@@ -16,22 +16,28 @@ function randomIndex(length, current = -1) {
   return next;
 }
 
-// A review card with its verdict, playtime and month
+// Playtime as a short bar on a log scale: 1 hour is a sliver, 1,000 hours is full
+const playtimeShare = (hours) => Math.min(1, Math.log10(hours + 1) / 3);
+
+// A review as a large pull-quote with its verdict, playtime bar and month; it animates in when the review changes
 function ReviewCard({ review }) {
   const Icon = review.voted_up ? ThumbsUp : ThumbsDown;
+  const color = review.voted_up ? PRAISE_COLOR : COMPLAINT_COLOR;
   const hours = review.playtime_at_review_h;
   const created = new Date(review.created);
+  const long = review.review.split(/\s+/).length > 60;
   return (
-    <div className="review-card">
-      <div className="review-meta">
-        <Icon size={18} color={review.voted_up ? PRAISE_COLOR : COMPLAINT_COLOR} />
-        <span>
-          <strong>{review.voted_up ? "Recommended" : "Not recommended"}</strong> · {hours < 10 ? hours.toFixed(1) : formatCount(Math.round(hours))} h played
-          · {MONTHS[created.getUTCMonth()]} {created.getUTCFullYear()}
+    <figure className="review-stage" style={{ "--verdict": color }}>
+      <blockquote className={`review-quote${long ? " long" : ""}`}>{review.review}</blockquote>
+      <figcaption className="review-foot">
+        <span className="review-verdict"><Icon aria-hidden="true" />{review.voted_up ? "Recommended" : "Not recommended"}</span>
+        <span className="review-hours">
+          <span className="review-hours-track" aria-hidden="true"><i style={{ width: `${(100 * playtimeShare(hours)).toFixed(0)}%` }} /></span>
+          {hours < 10 ? hours.toFixed(1) : formatCount(Math.round(hours))} h played
         </span>
-      </div>
-      <div className="review-text">{review.review}</div>
-    </div>
+        <span className="review-date">{MONTHS[created.getUTCMonth()]} {created.getUTCFullYear()}</span>
+      </figcaption>
+    </figure>
   );
 }
 
@@ -39,6 +45,7 @@ function ReviewCard({ review }) {
 export default function ReviewRandomizer({ reviews }) {
   const [kind, setKind] = useState("Any");
   const [pick, setPick] = useState(0);
+  const [turns, setTurns] = useState(0);
   const pool = reviews.filter(KINDS[kind]);
 
   useEffect(() => setPick(randomIndex(pool.length)), [kind]);
@@ -51,11 +58,11 @@ export default function ReviewRandomizer({ reviews }) {
             <button key={label} className={kind === label ? "on" : ""} aria-pressed={kind === label} onClick={() => setKind(label)}>{label}</button>
           ))}
         </div>
-        <button className="button small" onClick={() => setPick(randomIndex(pool.length, pick))} disabled={pool.length < 2}>
-          <Dices />Another one
+        <button className="button small" onClick={() => { setPick(randomIndex(pool.length, pick)); setTurns((n) => n + 1); }} disabled={pool.length < 2}>
+          <Shuffle style={{ transform: `rotate(${turns * 180}deg)`, transition: "transform 0.5s ease" }} />Another one
         </button>
       </div>
-      {pool.length === 0 ? <p className="caption">No reviews of this kind in the sample.</p> : <ReviewCard review={pool[pick] ?? pool[0]} />}
+      {pool.length === 0 ? <p className="caption">No reviews of this kind in the sample.</p> : <ReviewCard key={`${kind}-${pick}`} review={pool[pick] ?? pool[0]} />}
     </div>
   );
 }

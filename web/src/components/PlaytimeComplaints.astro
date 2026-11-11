@@ -1,0 +1,25 @@
+---
+import { capitalize, themeIcon } from "../lib/themes.js";
+
+// Top complaints for each playtime group, side by side
+const { rows, color } = Astro.props;
+const groups = [...new Set(rows.map((row) => row.group))].map((group) => ({ group, themes: rows.filter((row) => row.group === group) }));
+---
+
+{groups.length > 0 && (
+  <div class="playtime-complaints" style={`--theme-color: ${color}`}>
+    <h3>What each group complains about</h3>
+    <div class="group-grid">
+      {groups.map(({ group, themes }) => (
+        <div class="group-card">
+          <div class="group-name">{group}</div>
+          {themes.map((row) => {
+            const Icon = themeIcon(row.theme);
+            return <div class="group-theme"><Icon />{capitalize(row.theme)}<span class="theme-pct">{Math.round(row.pct)}%</span></div>;
+          })}
+        </div>
+      ))}
+    </div>
+    <p class="caption">Share of each group's reviews that complain about the theme; groups with too few sampled reviews are left out.</p>
+  </div>
+)}

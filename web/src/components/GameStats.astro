@@ -1,0 +1,56 @@
+---
+import { COMPLAINT_COLOR, PRAISE_COLOR, formatCount, scoreColor } from "../lib/games.js";
+
+// The headline numbers as big type in one ruled row: all-time score, Steam rating, last 30 days and review count
+const { game, months, change } = Astro.props;
+const pct = Math.round(game.pct_positive);
+const recent = months.at(-1);
+
+// Last 12 months of score as a line, with the all-time score as a dashed guide
+const series = months.slice(-12).filter((month) => month.reviews > 0).map((month) => month.pct_positive);
+const low = Math.min(...series, game.pct_positive) - 3;
+const high = Math.max(...series, game.pct_positive) + 3;
+const y = (value) => 46 - ((value - low) / (high - low)) * 42;
+const points = series.map((value, i) => `${((200 * i) / Math.max(series.length - 1, 1)).toFixed(1)},${y(value).toFixed(1)}`).join(" ");
+const changePoints = change === null ? 0 : Math.abs(Math.round(change));
+const color = scoreColor(game.pct_positive);
+---
+
+<dl class="game-stats" data-reveal>
+  <div class="stat">
+    <dt>All-time positive</dt>
+    <dd class="stat-big"><span data-count={pct}>{pct}</span><small>%</small></dd>
+    <div class="meter" aria-hidden="true"><i style={`width: ${pct}%; background: ${color}`}></i></div>
+  </div>
+
+  <div class="stat">
+    <dt>Steam rating</dt>
+    <dd class="stat-big word" style={`color: ${color}`}>{game.score_desc}</dd>
+    <div class="gauge" style={`--gauge-pos: ${pct}%`} aria-hidden="true">
+      <div class="gauge-track"><i class="gauge-marker" style={`background: ${color}`}></i></div>
+      <div class="gauge-scale"><span>Negative</span><span>Mixed</span><span>Positive</span></div>
+    </div>
+  </div>
+
+  <div class="stat" title="Percent positive over the last 30 days, and how far that is from the all-time score">
+    <dt>Last 30 days</dt>
+    <dd class="stat-big">
+      {change === null ? "n/a" : <Fragment><span data-count={Math.round(recent.pct_positive)}>{Math.round(recent.pct_positive)}</span><small>%</small></Fragment>}
+      {change !== null && (
+        <span class="delta" style={`color: ${change >= 0 ? PRAISE_COLOR : COMPLAINT_COLOR}`}>{change >= 0 ? "▲" : "▼"} {changePoints} {changePoints === 1 ? "pt" : "pts"}</span>
+      )}
+    </dd>
+    {series.length > 1 && (
+      <svg class="stat-spark" viewBox="0 0 200 48" aria-hidden="true">
+        <line x1="0" x2="200" y1={y(game.pct_positive)} y2={y(game.pct_positive)} class="spark-guide" />
+        <polyline points={points} pathLength="1" stroke={color} />
+      </svg>
+    )}
+  </div>
+
+  <div class="stat">
+    <dt>English reviews</dt>
+    <dd class="stat-big"><span data-count={game.total_reviews}>{formatCount(game.total_reviews)}</span></dd>
+    <div class="stat-sub">{formatCount(game.sampled_reviews)} sampled for themes</div>
+  </div>
+</dl>

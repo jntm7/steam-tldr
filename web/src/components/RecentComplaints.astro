@@ -1,0 +1,45 @@
+---
+import { capitalize, themeIcon } from "../lib/themes.js";
+import { complaintChange, complaintVerdict } from "../lib/complaints.js";
+
+// Recent complaint themes: share now against the all-time share, a change badge and a few quotes
+const { rows, color } = Astro.props;
+const scale = Math.max(...rows.flatMap((row) => [row.pct, row.all_time_pct]), 1);
+---
+
+{rows.length === 0 ? (
+  <p class="caption">No notable complaints in the last 30 days.</p>
+) : (
+  <Fragment>
+    <p class="complaint-verdict">{complaintVerdict(rows)}</p>
+    <div class="complaint-legend" aria-hidden="true">
+      <span><i class="key now" style={`background: ${color}`}></i>Last 30 days</span>
+      <span><i class="key usual"></i>All time</span>
+    </div>
+    <div class="theme-list" style={`--theme-color: ${color}`}>
+      {rows.map((row) => {
+        const Icon = themeIcon(row.theme);
+        const change = complaintChange(row);
+        const [first, ...more] = row.examples ?? [];
+        return (
+          <div class="theme-row">
+            <div class="theme-head">
+              <Icon />{capitalize(row.theme)}
+              <span class={`change-badge ${change.status}`}>{change.label}</span>
+              <span class="theme-pct">{Math.round(row.pct)}% <span class="theme-usual">vs {Math.round(row.all_time_pct)}%</span></span>
+            </div>
+            <div class="theme-track"><div class="theme-bar" style={`width: ${(100 * row.pct) / scale}%`} /></div>
+            <div class="theme-track usual"><div class="theme-bar" style={`width: ${(100 * row.all_time_pct) / scale}%`} /></div>
+            {first && <div class="theme-quote">“{first}”</div>}
+            {more.length > 0 && (
+              <details class="more-quotes">
+                <summary>{more.length} more {more.length === 1 ? "quote" : "quotes"}</summary>
+                {more.map((quote) => <div class="theme-quote">“{quote}”</div>)}
+              </details>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  </Fragment>
+)}

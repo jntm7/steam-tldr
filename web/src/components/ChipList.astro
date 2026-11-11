@@ -1,0 +1,26 @@
+---
+// Pills that show the first few items and tuck the rest behind a "+N" pill; they flow into whatever row holds them
+const { items, limit = 4, tone = "plain", prefix, label } = Astro.props;
+const extra = items.length - limit;
+---
+
+<div class={`chips ${tone}`} data-chips>
+  {items.map((item, i) => <span class="chip" title={label} hidden={i >= limit}>{i === 0 && prefix && <b class="chip-label">{prefix}</b>}{item}</span>)}
+  {extra > 0 && <button type="button" class="chip chip-more" aria-expanded="false" data-extra={extra} title={`Show all ${label ?? "items"}`}>+{extra}</button>}
+</div>
+
+<script>
+  // Show or hide the tucked-away pills
+  document.querySelectorAll("[data-chips]").forEach((row) => {
+    const button = row.querySelector(".chip-more");
+    if (!button) return;
+    button.addEventListener("click", () => {
+      const open = button.getAttribute("aria-expanded") !== "true";
+      const chips = [...row.querySelectorAll(".chip:not(.chip-more)")];
+      const limit = chips.length - Number(button.dataset.extra);
+      chips.forEach((chip, i) => { chip.hidden = !open && i >= limit; });
+      button.setAttribute("aria-expanded", String(open));
+      button.textContent = open ? "Less" : `+${button.dataset.extra}`;
+    });
+  });
+</script>

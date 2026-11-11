@@ -1,16 +1,20 @@
 ---
 import {
-  ArrowLeft, ChartLine, CircleCheck, Clock, Dices, ExternalLink, Hourglass, LayoutDashboard, MessagesSquare, OctagonX, RefreshCw, Star,
-  ThumbsDown, ThumbsUp, TrendingDown, TrendingUp, TriangleAlert,
+  ArrowLeft, ChartLine, CircleCheck, Clock, MessageSquareQuote, ExternalLink, Hourglass, OctagonX, RefreshCw,
+  ThumbsDown, ThumbsUp, TrendingDown, TriangleAlert,
 } from "lucide-react";
 import { Image } from "astro:assets";
-import Base from "../../layouts/Base.astro";
+import Page from "../../layouts/Page.astro";
 import ThemeList from "../../components/ThemeList.astro";
+import GameStats from "../../components/GameStats.astro";
+import GameFacts from "../../components/GameFacts.astro";
+import RecentComplaints from "../../components/RecentComplaints.astro";
+import PlaytimeComplaints from "../../components/PlaytimeComplaints.astro";
 import TrendCharts from "../../components/TrendCharts.jsx";
 import PlaytimeChart from "../../components/PlaytimeChart.jsx";
 import ReviewRandomizer from "../../components/ReviewRandomizer.jsx";
-import { games, summaries } from "../../lib/data.js";
-import { COMPLAINT_COLOR, MONTHS, PRAISE_COLOR, formatCount, formatDate, gameName, monthName, scoreColor, tableRows } from "../../lib/games.js";
+import { summaries } from "../../lib/data.js";
+import { COMPLAINT_COLOR, MONTHS, PRAISE_COLOR, formatCount, formatDate, gameName, monthName, tableRows } from "../../lib/games.js";
 
 // One page per exported game
 export function getStaticPaths() {
@@ -24,24 +28,21 @@ const DANGER_CHANGE_POINTS = 20;
 const { game } = Astro.props;
 const name = gameName(game);
 
-// Portrait cover for the sidebar, which only the library index has
-const portrait = games.find((entry) => entry.appid === game.appid)?.library_image;
-
 // The last trend point is the last 30 days, compared with the all-time score
 const months = tableRows(game.trend);
 const recent = months.at(-1);
 const change = recent.reviews ? recent.pct_positive - game.pct_positive : null;
-const changePoints = change === null ? 0 : Math.abs(Math.round(change));
 const recentStart = new Date(recent.start);
 const recentWindow = `${MONTHS[recentStart.getUTCMonth()]} ${recentStart.getUTCDate()} to ${formatDate(game.fetched_at).replace(/, \d{4}$/, "")}`;
 
 // Who made it
-const developers = (game.developers ?? []).join(", ") || "Unknown";
-const publishers = (game.publishers ?? []).join(", ") || "Unknown";
-const credits = developers === publishers ? [["Developer & publisher", developers]] : [["Developer", developers], ["Publisher", publishers]];
+const names = (list) => (list?.length ? list : ["Unknown"]);
+const credits = String(game.developers) === String(game.publishers) ? [["Developer & publisher", names(game.developers)]] : [["Developer", names(game.developers)], ["Publisher", names(game.publishers)]];
 
 // Themes, playtime and the flagged months
 const recentComplaints = tableRows(game.recent_complaints);
+const hasRecent = game.recent_complaints !== null;
+const playtimeComplaints = tableRows(game.playtime_complaints);
 const playtime = tableRows(game.playtime).filter((row) => row.pct_positive !== null);
 const events = tableRows(game.events);
 
@@ -51,144 +52,111 @@ const points = months
   .filter((month) => month.pct_positive !== null)
   .map((month) => ({ label: month.label, pct: month.pct_positive, reviews: month.reviews, flag: flags[month.label] ?? null }));
 
-// Sidebar outline as (anchor, heading, icon, colour), skipping recent complaints when there are none
-const sections = [
-  ["overview", "Overview", LayoutDashboard, PRAISE_COLOR],
-  ["the-good", "The Good", ThumbsUp, PRAISE_COLOR],
-  ["the-bad", "The Bad", ThumbsDown, COMPLAINT_COLOR],
-  recentComplaints.length > 0 && ["recent-complaints", "Recent complaints", Clock, COMPLAINT_COLOR],
-  ["opinions-over-time", "Opinions over time", ChartLine, PRAISE_COLOR],
-  ["playtime", "Playtime", Hourglass, PRAISE_COLOR],
-  ["review-randomizer", "Review Randomizer", Dices, PRAISE_COLOR],
+// Outline dots as (anchor, label), skipping recent complaints when there are none
+const dots = [
+  ["overview", "Overview"],
+  ["praise", "Praise"],
+  ["complaints", "Complaints"],
+  ["opinions-over-time", "Trends"],
+  hasRecent && ["recent-complaints", "Recent"],
+  ["playtime", "Playtime"],
+  ["review-randomizer", "Reviews"],
 ].filter(Boolean);
 ---
 
-<Base title={name}>
-  <div slot="sidebar">
-    <div class={portrait ? "sidebar-game" : "sidebar-game wide"}>
-      {portrait ? (
-        <Image src={portrait} alt="" width={144} height={216} format="webp" quality={75} loading="eager" />
-      ) : game.header_image && <Image src={game.header_image} alt="" width={380} height={178} format="webp" quality={75} loading="eager" />}
-      <div>{name}</div>
+<Page title={name} dots={dots} heroId="overview">
+  <a slot="kicker" class="back-link" href="/games/"><ArrowLeft />All games</a>
+  <Fragment slot="heading">{name}</Fragment>
+  <div slot="header-wide">
+    <div class="badge-row" data-appid={game.appid}>
+      <a class="chip chip-link" href={`https://store.steampowered.com/app/${game.appid}/`} target="_blank" rel="noreferrer"><ExternalLink />Steam store page</a>
+      <span class="chip" title="When this game's reviews were last fetched"><RefreshCw />Review data last updated on {formatDate(game.fetched_at)}</span>
     </div>
-    <nav class="outline">
-      {sections.map(([anchor, label, Icon, color]) => <a href={`#${anchor}`}><Icon color={color} /><span>{label}</span></a>)}
-    </nav>
+    <div class="hero-sheet">
+      <GameStats game={game} months={months} change={change} />
+      {change !== null && change <= -DANGER_CHANGE_POINTS ? (
+        <p class="alert danger"><OctagonX />Recent reviews are far more negative than usual ({change.toFixed(0)} points). Check what players are complaining about lately below.</p>
+      ) : change !== null && change <= -BIG_CHANGE_POINTS ? (
+        <p class="alert warning"><TrendingDown />Recent reviews are much more negative than usual ({change.toFixed(0)} points). Check what players are complaining about lately below.</p>
+      ) : change !== null && change >= BIG_CHANGE_POINTS ? (
+        <p class="alert success"><CircleCheck />Recent reviews are much more positive than usual (+{change.toFixed(0)} points). The game may have improved.</p>
+      ) : null}
+      <GameFacts rows={[...credits.map(([label, names]) => [label, names, 3]), ["Released", [formatDate(game.release_date)]], ["Genres", game.genres?.length ? game.genres : ["Unknown"], 6]]} />
+    </div>
   </div>
+  {game.header_image && (
+    <Image slot="backdrop" class="game-backdrop" src={game.header_image} alt="" width={460} height={215} format="webp" quality={60} loading="eager" fetchpriority="high" />
+  )}
 
-  <a class="back-link" href="/games/"><ArrowLeft />All games</a>
-  <div class="game-header" data-appid={game.appid}>
-    {game.header_image && <Image class="banner" src={game.header_image} alt="" width={460} height={215} format="webp" quality={80} loading="eager" fetchpriority="high" />}
-    <div class="game-title">
-      <h1>{name}</h1>
-      <div class="game-links">
-        <a class="button small" href={`https://store.steampowered.com/app/${game.appid}/`} target="_blank" rel="noreferrer">Steam store page<ExternalLink /></a>
-        <span class="updated"><RefreshCw />Data updated {formatDate(game.fetched_at)}</span>
+  <section class="panel" id="praise" data-reveal>
+    <h2><ThumbsUp color={PRAISE_COLOR} />Praise</h2>
+    <p class="caption">What players love most, as a share of all this game's reviews</p>
+    <ThemeList rows={tableRows(game.praise)} color={PRAISE_COLOR} />
+  </section>
+
+  <section class="panel" id="complaints" data-reveal>
+    <h2><ThumbsDown color={COMPLAINT_COLOR} />Complaints</h2>
+    <p class="caption">What players complain about most, as a share of all this game's reviews</p>
+    <ThemeList rows={tableRows(game.complaints)} color={COMPLAINT_COLOR} />
+  </section>
+
+  <section class="panel" id="opinions-over-time" data-reveal>
+    <h2><ChartLine color={PRAISE_COLOR} />Trends</h2>
+    <p class="caption">
+      Percent positive each month, with the number of reviews below. The dashed line is the all-time score, and the last point covers the last 30 days.
+    </p>
+    <TrendCharts points={points} overall={game.pct_positive} client:visible />
+    {events.length > 0 && (
+      <div class="alert warning">
+        <TriangleAlert />
+        <div>
+          <strong>Flagged events</strong> (red dots): months with a surge of negative reviews or a sharp drop in score.
+          <ul>
+            {events.map((event) => (
+              <li>
+                <strong>{monthName(event.label)}</strong> ({event.kind.toLowerCase()}): {`${formatCount(event.reviews)} reviews, `}
+                {`${Math.round(event.pct_positive)}% positive vs a usual ${Math.round(event.usual_pct)}%`}
+                {event.kind === "Negative surge" && `, ${formatCount(Math.round(event.extra_negatives))} more negative reviews than usual`}
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
-    </div>
-  </div>
+    )}
+  </section>
 
-  <hr />
-  <h2 id="overview"><LayoutDashboard color={PRAISE_COLOR} />Overview</h2>
-  <p class="caption">Who made it, when it came out, and how players rate it overall and right now</p>
-  <div class="stats info">
-    {credits.map(([label, value]) => <div><div class="cell-label">{label}</div><div class="cell-value">{value}</div></div>)}
-    <div><div class="cell-label">Released</div><div class="cell-value">{formatDate(game.release_date)}</div></div>
-    <div><div class="cell-label">Genres</div><div class="cell-value">{(game.genres ?? []).join(" · ") || "Unknown"}</div></div>
-  </div>
-  <div class="stats">
-    <div><div class="cell-label"><ThumbsUp />All-time positive</div><div class="cell-stat">{Math.round(game.pct_positive)}%</div></div>
-    <div><div class="cell-label"><Star />Steam rating</div><div class="cell-stat word" style={`color: ${scoreColor(game.pct_positive)}`}>{game.score_desc}</div></div>
-    <div title="Percent positive over the last 30 days. The badge compares it with the all-time score.">
-      <div class="cell-label"><TrendingUp />Last 30 days</div>
-      <div class="cell-stat">
-        {change === null ? "n/a" : `${Math.round(recent.pct_positive)}%`}
-        {change !== null && (
-          <span class="cell-delta" style={`color: ${change >= 0 ? PRAISE_COLOR : COMPLAINT_COLOR}`}>
-            {change >= 0 ? "▲" : "▼"} {changePoints} {changePoints === 1 ? "pt" : "pts"}
-          </span>
-        )}
-      </div>
-    </div>
-    <div><div class="cell-label"><MessagesSquare />English reviews</div><div class="cell-stat">{formatCount(game.total_reviews)}</div></div>
-  </div>
-
-  {change !== null && change <= -DANGER_CHANGE_POINTS ? (
-    <p class="alert danger"><OctagonX />Recent reviews are far more negative than usual ({change.toFixed(0)} points). Check what players are complaining about lately below.</p>
-  ) : change !== null && change <= -BIG_CHANGE_POINTS ? (
-    <p class="alert warning"><TrendingDown />Recent reviews are much more negative than usual ({change.toFixed(0)} points). Check what players are complaining about lately below.</p>
-  ) : change !== null && change >= BIG_CHANGE_POINTS ? (
-    <p class="alert success"><CircleCheck />Recent reviews are much more positive than usual (+{change.toFixed(0)} points). The game may have improved.</p>
-  ) : null}
-
-  <hr />
-  <div class="two-columns">
-    <section>
-      <h2 id="the-good"><ThumbsUp color={PRAISE_COLOR} />The Good</h2>
-      <p class="caption">The most praised themes, as a share of all this game's reviews</p>
-      <ThemeList rows={tableRows(game.praise)} color={PRAISE_COLOR} />
+  {hasRecent && (
+    <section class="panel" id="recent-complaints" data-reveal>
+      <h2><Clock color={COMPLAINT_COLOR} />Recent</h2>
+      <p class="caption">Complaints in reviews from the last 30 days ({recentWindow}), compared with the game's all-time share, to spot new problems and recent fixes</p>
+      <RecentComplaints rows={recentComplaints} color={COMPLAINT_COLOR} />
     </section>
-    <section>
-      <h2 id="the-bad"><ThumbsDown color={COMPLAINT_COLOR} />The Bad</h2>
-      <p class="caption">The most common complaints, as a share of all this game's reviews</p>
-      <ThemeList rows={tableRows(game.complaints)} color={COMPLAINT_COLOR} />
-    </section>
-  </div>
-
-  {recentComplaints.length > 0 && (
-    <Fragment>
-      <hr />
-      <h2 id="recent-complaints"><Clock color={COMPLAINT_COLOR} />Recent complaints</h2>
-      <p class="caption">Top complaints in reviews from the last 30 days ({recentWindow}), to spot new problems or recent fixes</p>
-      <ThemeList rows={recentComplaints} color={COMPLAINT_COLOR} />
-    </Fragment>
   )}
 
-  <hr />
-  <h2 id="opinions-over-time"><ChartLine color={PRAISE_COLOR} />Opinions over time</h2>
-  <p class="caption">
-    Percent positive each month, with the number of reviews below. The dashed line is the all-time score, and the last point covers the last 30 days.
-  </p>
-  <TrendCharts points={points} overall={game.pct_positive} client:visible />
-  {events.length > 0 && (
-    <div class="alert warning">
-      <TriangleAlert />
-      <div>
-        <strong>Flagged events</strong> (red dots): months with a surge of negative reviews or a sharp drop in score.
-        <ul>
-          {events.map((event) => (
-            <li>
-              <strong>{monthName(event.label)}</strong> ({event.kind.toLowerCase()}): {`${formatCount(event.reviews)} reviews, `}
-              {`${Math.round(event.pct_positive)}% positive vs a usual ${Math.round(event.usual_pct)}%`}
-              {event.kind === "Negative surge" && `, ${formatCount(Math.round(event.extra_negatives))} more negative reviews than usual`}
-            </li>
-          ))}
-        </ul>
-      </div>
-    </div>
-  )}
+  <section class="panel" id="playtime" data-reveal>
+    <h2><Hourglass color={PRAISE_COLOR} />Playtime</h2>
+    <p class="caption">Percent positive by how many hours reviewers had played when they wrote their review</p>
+    {playtime.length === 0 ? (
+      <p class="caption">No playtime data for this game yet.</p>
+    ) : (
+      <Fragment>
+        <PlaytimeChart groups={playtime} client:visible />
+        <p class="caption">A low score under 2 hours often means a rough first impression, a bad launch, or performance problems.</p>
+        <PlaytimeComplaints rows={playtimeComplaints} color={COMPLAINT_COLOR} />
+      </Fragment>
+    )}
+  </section>
 
-  <hr />
-  <h2 id="playtime"><Hourglass color={PRAISE_COLOR} />Playtime</h2>
-  <p class="caption">Percent positive by how many hours reviewers had played when they wrote their review</p>
-  {playtime.length === 0 ? (
-    <p class="caption">No playtime data for this game yet.</p>
-  ) : (
-    <Fragment>
-      <PlaytimeChart groups={playtime} client:visible />
-      <p class="caption">A low score under 2 hours often means a rough first impression, a bad launch, or performance problems.</p>
-    </Fragment>
-  )}
-
-  <hr />
-  <h2 id="review-randomizer"><Dices color={PRAISE_COLOR} />Review Randomizer</h2>
-  <p class="caption">A random review from this game's sample, which leans toward reviews other players found helpful</p>
-  {game.shown_reviews?.data.length ? (
-    <ReviewRandomizer reviews={tableRows(game.shown_reviews)} client:visible />
-  ) : (
-    <p class="caption">No reviews short enough to show here.</p>
-  )}
-</Base>
+  <section class="panel" id="review-randomizer" data-reveal>
+    <h2><MessageSquareQuote color={PRAISE_COLOR} />Reviews</h2>
+    <p class="caption">A random review from this game's sample, which leans toward reviews other players found helpful</p>
+    {game.shown_reviews?.data.length ? (
+      <ReviewRandomizer reviews={tableRows(game.shown_reviews)} client:visible />
+    ) : (
+      <p class="caption">No reviews short enough to show here.</p>
+    )}
+  </section>
+</Page>
 
 <script>
   import { MAX_RECENT, RECENT_KEY } from "../../lib/games.js";
