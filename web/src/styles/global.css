@@ -33,6 +33,19 @@
 /* Page basics */
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--text); font-family: "Quantico", sans-serif; line-height: 1.6; }
+
+/* Page changes fade instead of flashing, in browsers that support cross-page transitions (Chromium, Safari); the sidebar stays put */
+@view-transition { navigation: auto; }
+.sidebar { view-transition-name: sidebar; }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: 0.2s; }
+
+/* Anchor links, and the library's jump back to its top, glide; the gap keeps targets clear of the phone header */
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+html { scroll-padding-top: 1rem; }
+@media (max-width: 760px) { html { scroll-padding-top: 4.75rem; } }
+
+/* People who ask for less motion get instant page changes */
+@media (prefers-reduced-motion: reduce) { @view-transition { navigation: none; } }
 a { color: var(--accent); }
 h1 { margin: 0 0 1rem; font-size: 2.75rem; line-height: 1.2; }
 h2 { display: flex; align-items: center; gap: 0.6rem; margin: 2rem 0 1rem; font-size: 1.5rem; line-height: 1.3; }
@@ -268,9 +281,11 @@ main { margin-left: var(--sidebar-width); padding: 3.5rem clamp(1rem, 3vw, 3.5re
 .button.small svg { width: 1.1rem; height: 1.1rem; }
 .button.small:disabled { opacity: 0.5; cursor: not-allowed; }
 
-/* Sidebar header on game pages */
-.sidebar-game { display: flex; align-items: center; gap: 0.6rem; margin: 0 0.6rem 0.6rem; }
-.sidebar-game img { flex: none; width: 64px; border-radius: 0.3rem; }
+/* Sidebar header on game pages: the portrait cover beside the name, or a banner on its own line when there is no portrait */
+.sidebar-game { display: flex; align-items: center; gap: 0.8rem; margin: 0 0.6rem 0.6rem; }
+.sidebar-game img { flex: none; width: 72px; height: auto; border-radius: 0.35rem; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35); }
+.sidebar-game.wide { flex-direction: column; align-items: stretch; gap: 0.6rem; }
+.sidebar-game.wide img { width: 100%; border-radius: 0.4rem; }
 .sidebar-game div { min-width: 0; font-size: 0.9rem; font-weight: 700; line-height: 1.3; }
 
 /* Overview panels: credits, then headline numbers */

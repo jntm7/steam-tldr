@@ -9,7 +9,7 @@ import ThemeList from "../../components/ThemeList.astro";
 import TrendCharts from "../../components/TrendCharts.jsx";
 import PlaytimeChart from "../../components/PlaytimeChart.jsx";
 import ReviewRandomizer from "../../components/ReviewRandomizer.jsx";
-import { summaries } from "../../lib/data.js";
+import { games, summaries } from "../../lib/data.js";
 import { COMPLAINT_COLOR, MONTHS, PRAISE_COLOR, formatCount, formatDate, gameName, monthName, scoreColor, tableRows } from "../../lib/games.js";
 
 // One page per exported game
@@ -23,6 +23,9 @@ const DANGER_CHANGE_POINTS = 20;
 
 const { game } = Astro.props;
 const name = gameName(game);
+
+// Portrait cover for the sidebar, which only the library index has
+const portrait = games.find((entry) => entry.appid === game.appid)?.library_image;
 
 // The last trend point is the last 30 days, compared with the all-time score
 const months = tableRows(game.trend);
@@ -62,8 +65,10 @@ const sections = [
 
 <Base title={name}>
   <div slot="sidebar">
-    <div class="sidebar-game">
-      {game.header_image && <Image src={game.header_image} alt="" width={128} height={60} format="webp" quality={75} loading="eager" />}
+    <div class={portrait ? "sidebar-game" : "sidebar-game wide"}>
+      {portrait ? (
+        <Image src={portrait} alt="" width={144} height={216} format="webp" quality={75} loading="eager" />
+      ) : game.header_image && <Image src={game.header_image} alt="" width={380} height={178} format="webp" quality={75} loading="eager" />}
       <div>{name}</div>
     </div>
     <nav class="outline">
