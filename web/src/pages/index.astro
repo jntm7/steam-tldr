@@ -4,13 +4,14 @@ import Base from "../layouts/Base.astro";
 import GameCard from "../components/GameCard.jsx";
 import GithubIcon from "../assets/github.svg";
 import { games, settings, summaries } from "../lib/data.js";
+import { withImages } from "../lib/images.js";
 import { formatCount, gameHref, gameName, tableRows } from "../lib/games.js";
 
 // Trending needs this many reviews in the last 30 days, and this many earlier months to know the usual;
-// games with fewer months are new releases, which fill at most half the row
+// games with fewer months are new releases, listed apart from trending
 const TRENDING_MIN_REVIEWS = 500;
 const TRENDING_MIN_MONTHS = 3;
-const TRENDING_GAMES = 8;
+const TRENDING_GAMES = 5;
 
 // Headline numbers across every game
 const steamReviews = games.reduce((sum, game) => sum + (game.summary?.total_reviews ?? 0), 0);
@@ -54,9 +55,16 @@ const activity = summaries
 const newReleases = activity
   .filter((game) => game.isNew && game.recent >= TRENDING_MIN_REVIEWS)
   .sort((a, b) => b.recent - a.recent)
-  .slice(0, TRENDING_GAMES / 2);
-const surging = activity.filter((game) => game.surge > 1).sort((a, b) => b.surge - a.surge);
-const trending = [...newReleases, ...surging].slice(0, TRENDING_GAMES);
+  .slice(0, TRENDING_GAMES);
+const surgingGames = activity
+  .filter((game) => game.surge > 1)
+  .sort((a, b) => b.surge - a.surge)
+  .slice(0, TRENDING_GAMES);
+
+// The same games with small copies of their art
+const withArt = (list) => Promise.all(list.map(async (item) => ({ ...item, game: await withImages(item.game) })));
+const newCards = await withArt(newReleases);
+const surgingCards = await withArt(surgingGames);
 
 // Headline numbers as (label, icon, value)
 const stats = [
@@ -90,17 +98,20 @@ const stats = [
     {stats.map(([label, Icon, value]) => <div><div class="cell-label"><Icon />{label}</div><div class="cell-stat">{formatCount(value)}</div></div>)}
   </div>
 
-  <h2>New & Trending</h2>
-  <p class="caption">
-    New releases with the most reviews in the last 30 days, and games getting more reviews than in their usual month
-  </p>
-  <div class="home-library">
-    {trending.map(({ game, isNew, recent, surge }) =>
-      isNew ? (
-        <GameCard game={game} badge="New" note={`${formatCount(recent)} reviews in 30 days`} />
-      ) : (
-        <GameCard game={game} note={`${surge.toFixed(1)}× usual reviews`} />
-      ),
-    )}
+  <div class="home-columns">
+    <section>
+      <h2>New</h2>
+      <p class="caption">Releases with the most reviews in the last 30 days</p>
+      <div class="home-library">
+        {newCards.map(({ game, recent }) => <GameCard game={game} eager badge="New" note={`${formatCount(recent)} reviews in 30 days`} />)}
+      </div>
+    </section>
+    <section>
+      <h2>Trending</h2>
+      <p class="caption">Games getting more reviews than in their usual month</p>
+      <div class="home-library">
+        {surgingCards.map(({ game, surge }) => <GameCard game={game} eager note={`${surge.toFixed(1)}× usual reviews`} />)}
+      </div>
+    </section>
   </div>
 </Base>

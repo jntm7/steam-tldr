@@ -3,6 +3,7 @@ import {
   ArrowLeft, ChartLine, CircleCheck, Clock, Dices, ExternalLink, Hourglass, LayoutDashboard, MessagesSquare, OctagonX, RefreshCw, Star,
   ThumbsDown, ThumbsUp, TrendingDown, TrendingUp, TriangleAlert,
 } from "lucide-react";
+import { Image } from "astro:assets";
 import Base from "../../layouts/Base.astro";
 import ThemeList from "../../components/ThemeList.astro";
 import TrendCharts from "../../components/TrendCharts.jsx";
@@ -62,7 +63,7 @@ const sections = [
 <Base title={name}>
   <div slot="sidebar">
     <div class="sidebar-game">
-      {game.header_image && <img src={game.header_image} alt="" />}
+      {game.header_image && <Image src={game.header_image} alt="" width={128} height={60} format="webp" quality={75} loading="eager" />}
       <div>{name}</div>
     </div>
     <nav class="outline">
@@ -70,10 +71,16 @@ const sections = [
     </nav>
   </div>
 
+  <a class="back-link" href="/games/"><ArrowLeft />All games</a>
   <div class="game-header" data-appid={game.appid}>
-    {game.header_image && <img src={game.header_image} alt="" width="154" height="72" />}
-    <h1>{name}</h1>
-    <a class="button small" href="/games/"><ArrowLeft />All games</a>
+    {game.header_image && <Image class="banner" src={game.header_image} alt="" width={460} height={215} format="webp" quality={80} loading="eager" fetchpriority="high" />}
+    <div class="game-title">
+      <h1>{name}</h1>
+      <div class="game-links">
+        <a class="button small" href={`https://store.steampowered.com/app/${game.appid}/`} target="_blank" rel="noreferrer">Steam store page<ExternalLink /></a>
+        <span class="updated"><RefreshCw />Data updated {formatDate(game.fetched_at)}</span>
+      </div>
+    </div>
   </div>
 
   <hr />
@@ -83,10 +90,6 @@ const sections = [
     {credits.map(([label, value]) => <div><div class="cell-label">{label}</div><div class="cell-value">{value}</div></div>)}
     <div><div class="cell-label">Released</div><div class="cell-value">{formatDate(game.release_date)}</div></div>
     <div><div class="cell-label">Genres</div><div class="cell-value">{(game.genres ?? []).join(" · ") || "Unknown"}</div></div>
-    <div>
-      <div class="cell-label">Steam store page</div>
-      <a class="button small" href={`https://store.steampowered.com/app/${game.appid}/`} target="_blank" rel="noreferrer">Open<ExternalLink /></a>
-    </div>
   </div>
   <div class="stats">
     <div><div class="cell-label"><ThumbsUp />All-time positive</div><div class="cell-stat">{Math.round(game.pct_positive)}%</div></div>
@@ -103,7 +106,6 @@ const sections = [
       </div>
     </div>
     <div><div class="cell-label"><MessagesSquare />English reviews</div><div class="cell-stat">{formatCount(game.total_reviews)}</div></div>
-    <div><div class="cell-label"><RefreshCw />Last updated</div><div class="cell-stat word">{formatDate(game.fetched_at)}</div></div>
   </div>
 
   {change !== null && change <= -DANGER_CHANGE_POINTS ? (
