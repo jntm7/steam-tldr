@@ -1,11 +1,11 @@
 ---
-import { CircleHelp, Gamepad2, House, Menu, Monitor, Moon, Sun } from "lucide-react";
+import { CircleHelp, Gamepad2, House, Menu, Monitor, Moon, Sun, TriangleAlert } from "lucide-react";
 import "../styles/global.css";
 
 const { title } = Astro.props;
 
 // Sidebar pages as (address, label, icon); game pages count as Games
-const pages = [["/", "Home", House], ["/games/", "Games", Gamepad2], ["/faq/", "FAQ", CircleHelp]];
+const pages = [["/", "Home", House], ["/games/", "Games", Gamepad2], ["/outliers/", "Outliers", TriangleAlert], ["/faq/", "FAQ", CircleHelp]];
 const here = Astro.url.pathname.replace(/\/?$/, "/");
 const current = (href) => here === href || (href === "/games/" && here.startsWith("/game/"));
 
