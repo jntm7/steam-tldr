@@ -5,7 +5,7 @@ import { PAGES, isCurrent, pagePath } from "../lib/nav.js";
 
 const here = pagePath(Astro.url);
 
-// Dev-only update button, left out of the built site
+// Dev-only refresh button
 const DevRefresh = import.meta.env.DEV ? (await import("./DevRefresh.astro")).default : null;
 const gameId = here.match(/^\/game\/(\d+)\/$/)?.[1];
 ---
@@ -31,17 +31,21 @@ const gameId = here.match(/^\/game\/(\d+)\/$/)?.[1];
 </header>
 
 <script>
-  // Nav pills get a more solid backing once the page scrolls past the top
+  // Solid pills once scrolled
   const nav = document.querySelector(".site-nav");
   const onScroll = () => nav.classList.toggle("scrolled", scrollY > 24);
   addEventListener("scroll", onScroll, { passive: true });
   onScroll();
 
-  // Body text in sections runs up to the right edge of the nav bar: publish that width for the stylesheet
+  // Text width up to the nav bar, full width on phones
   const sizeText = () => {
     const center = document.querySelector(".nav-center");
     const content = document.querySelector(".page-content");
     if (!center || !content) return;
+    if (matchMedia("(max-width: 760px)").matches) {
+      document.documentElement.style.removeProperty("--text-max");
+      return;
+    }
     const width = center.getBoundingClientRect().right - content.getBoundingClientRect().left;
     document.documentElement.style.setProperty("--text-max", `${Math.max(width, 320).toFixed(0)}px`);
   };

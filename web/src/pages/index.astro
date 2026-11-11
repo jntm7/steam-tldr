@@ -1,27 +1,29 @@
 ---
-import { ChevronDown, CircleHelp, Flame, Gamepad2, Sparkles, TrendingUp } from "lucide-react";
+import { ChevronDown, CircleHelp, Flame, Gamepad2, Scale, Sparkles, TrendingDown, TrendingUp } from "lucide-react";
 import Landing from "../layouts/Landing.astro";
 import HomeSection from "../components/HomeSection.astro";
 import HeroPattern from "../components/HeroPattern.astro";
 import HeroReport from "../components/HeroReport.jsx";
+import SectionDots from "../components/SectionDots.astro";
 import GithubIcon from "../assets/github.svg";
 import HuggingFaceIcon from "../assets/huggingface.svg";
 import { games, settings, summaries } from "../lib/data.js";
 import { withWideBanner } from "../lib/images.js";
 import { heroCards } from "../lib/landing.js";
-import { formatCount, tableRows } from "../lib/games.js";
+import { formatCount, steamPct, tableRows } from "../lib/games.js";
 
-// Trending needs this many reviews in the last 30 days, and this many earlier months to know the usual;
-// games with fewer months are new releases, listed apart from trending
+// Section thresholds
 const TRENDING_MIN_REVIEWS = 500;
 const TRENDING_MIN_MONTHS = 3;
+const DIVISIVE_MIN_REVIEWS = 5000;
+const FALLING_DROP_POINTS = 10;
 const ROW_GAMES = 5;
 
-// Headline numbers across every game
+// Review totals
 const steamReviews = games.reduce((sum, game) => sum + (game.summary?.total_reviews ?? 0), 0);
 const sampledReviews = games.reduce((sum, game) => sum + game.sampled_reviews, 0);
 
-// Middle value of a list of numbers, or 0 for an empty list
+// Median, 0 when empty
 function median(values) {
   if (values.length === 0) return 0;
   const sorted = [...values].sort((a, b) => a - b);
@@ -29,15 +31,16 @@ function median(values) {
   return sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2;
 }
 
-// A game's reviews in the last 30 days, whether it's too new to have a usual month, and the recent reviews
-// as a multiple of its usual month, the median of the months before (as for flagged events)
+// Last 30 days against the usual month and the all-time score
 function reviewActivity(summary) {
   const months = tableRows(summary.trend);
-  const recent = months.at(-1).reviews;
+  const last = months.at(-1);
+  const recent = last.reviews;
   const isNew = months.length - 1 < TRENDING_MIN_MONTHS;
   const usual = median(months.slice(-1 - settings.flag_lookback_months, -1).map((month) => month.reviews));
   const surge = !isNew && recent >= TRENDING_MIN_REVIEWS && usual > 0 ? recent / usual : 0;
-  return { recent, isNew, surge };
+  const change = recent > 0 ? last.pct_positive - summary.pct_positive : null;
+  return { recent, isNew, surge, change };
 }
 
 const byAppid = Object.fromEntries(games.map((game) => [game.appid, game]));
@@ -45,7 +48,7 @@ const activity = summaries
   .filter((summary) => byAppid[summary.appid])
   .map((summary) => ({ game: byAppid[summary.appid], ...reviewActivity(summary) }));
 
-// New releases with the most reviews lately, then the games getting the most reviews compared with their usual month
+// New, trending and popular games
 const newReleases = activity
   .filter((game) => game.isNew && game.recent >= TRENDING_MIN_REVIEWS)
   .sort((a, b) => b.recent - a.recent)
@@ -56,15 +59,30 @@ const surgingGames = activity
   .slice(0, ROW_GAMES);
 const popularGames = [...games].sort((a, b) => (b.summary?.total_reviews ?? 0) - (a.summary?.total_reviews ?? 0)).slice(0, ROW_GAMES);
 
-// Each section with its games, and one headline figure per game
+// Divisive and falling games
+const divisiveGames = games
+  .map((game) => ({ game, pct: steamPct(game) }))
+  .filter(({ game, pct }) => pct !== null && pct >= 45 && pct <= 70 && (game.summary?.total_reviews ?? 0) >= DIVISIVE_MIN_REVIEWS)
+  .sort((a, b) => Math.abs(a.pct - 50) - Math.abs(b.pct - 50))
+  .slice(0, ROW_GAMES);
+const fallingGames = activity
+  .filter((game) => game.change !== null && game.change <= -FALLING_DROP_POINTS && game.recent >= TRENDING_MIN_REVIEWS)
+  .sort((a, b) => a.change - b.change)
+  .slice(0, ROW_GAMES);
+
+// Landing sections: last 30 days first, then all-time
 const compact = new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 });
 const sections = [
-  { id: "new", title: "New", Icon: Sparkles, caption: "Releases with the most reviews in the last 30 days",
-    items: newReleases.map(({ game, recent }) => ({ game, badge: "New", figure: compact.format(recent), unit: "Reviews Past 30D" })) },
   { id: "trending", title: "Trending", Icon: TrendingUp, caption: "Games getting more reviews than in their usual month",
-    items: surgingGames.map(({ game, surge }) => ({ game, figure: `${surge.toFixed(1)}×`, unit: "usual reviews" })) },
+    items: surgingGames.map(({ game, surge }) => ({ game, figure: `${surge.toFixed(1)}×`, unit: "Usual", sub: "reviews" })) },
+  { id: "new", title: "New", Icon: Sparkles, caption: "Releases with the most reviews in the last 30 days",
+    items: newReleases.map(({ game, recent }) => ({ game, badge: "New", figure: compact.format(recent), unit: "Reviews", sub: "Last 30D" })) },
+  { id: "falling", title: "Falling", Icon: TrendingDown, caption: "The biggest drops in score in the last 30 days, against each game's all-time score",
+    items: fallingGames.map(({ game, change }) => ({ game, figure: `−${Math.abs(change).toFixed(0)} pts`, unit: "Rating", sub: "Last 30D" })) },
   { id: "popular", title: "Popular", Icon: Flame, caption: "The most reviewed games on Steam in our library",
     items: popularGames.map((game) => ({ game, figure: compact.format(game.summary.total_reviews), unit: "reviews" })) },
+  { id: "divisive", title: "Divisive", Icon: Scale, caption: "Well-reviewed games whose players split most evenly between positive and negative",
+    items: divisiveGames.map(({ game, pct }) => ({ game, figure: `${pct.toFixed(0)}/${(100 - pct).toFixed(0)}`, unit: "split" })) },
 ];
 
 // Hero stats
@@ -85,7 +103,7 @@ const cards = await Promise.all(heroCards(games, summaries).map(async (card) => 
 ---
 
 <Landing>
-  <section class="hero">
+  <section class="hero" id="top">
     <div class="hero-backdrop" aria-hidden="true"><HeroPattern /></div>
     <div class="hero-inner">
       <div class="hero-text">
@@ -123,7 +141,9 @@ const cards = await Promise.all(heroCards(games, summaries).map(async (card) => 
     <a class="scroll-hint" href="#rows"><span>Scroll to Explore</span><ChevronDown aria-hidden="true" /></a>
   </section>
 
-  <div class="page-width page-content" id="rows">
+  <div class="page-width page-content with-dots" id="rows">
     {sections.map((section) => <HomeSection {...section} />)}
   </div>
+
+  {sections.length > 0 && <SectionDots labeled after="top" items={[["top", "Overview"], ...sections.map((section) => [section.id, section.title])]} />}
 </Landing>

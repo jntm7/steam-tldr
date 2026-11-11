@@ -21,7 +21,8 @@ export function reportCard(game, summary) {
   };
 }
 
-// Hero card games, alternating high and mixed scores: Monster Hunter Wilds, Counter-Strike 2, Cities: Skylines II, Baldur's Gate 3, Helldivers 2
+// Hero card games, alternating high and mixed scores
+// Monster Hunter Wilds, Counter-Strike 2, Cities: Skylines II, Baldur's Gate 3, Helldivers 2
 const HERO_GAMES = [2246340, 730, 949230, 1086940, 553850];
 
 // Report cards for the hero games, skipping any missing from the library

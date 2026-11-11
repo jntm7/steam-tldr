@@ -2,7 +2,7 @@
 import { Image } from "astro:assets";
 import { gameHref, gameName, scoreColor, steamPct } from "../lib/games.js";
 
-// One landing section: a large featured game, then the rest as ruled rows with a score meter and one headline figure each
+// Featured game, then ruled rows
 const { id, title, Icon, caption, items } = Astro.props;
 const [first, ...rest] = items;
 
@@ -24,7 +24,7 @@ const pctOf = (game) => steamPct(game);
         <div class="feature-info">
           <div class="feature-name">{gameName(first.game)}</div>
           <div class="feature-genres">{(first.game.genres ?? []).slice(0, 3).join(" · ")}</div>
-          <div class="feature-figure"><b>{first.figure}</b><span>{first.unit}</span></div>
+          <div class="feature-figure"><b>{first.figure}</b><span>{first.unit}</span>{first.sub && <span>{first.sub}</span>}</div>
           {pctOf(first.game) !== null && (
             <div class="feature-score" style={`--score: ${pctOf(first.game).toFixed(0)}%; --tone: ${scoreColor(pctOf(first.game))}`}>
               <div class="mini-meter"><i></i></div>
@@ -53,7 +53,7 @@ const pctOf = (game) => steamPct(game);
                   </span>
                 )}
               </span>
-              <span class="feature-row-figure"><b>{item.figure}</b><span>{item.unit}</span></span>
+              <span class="feature-row-figure"><b>{item.figure}</b><span>{item.unit}</span>{item.sub && <span>{item.sub}</span>}</span>
             </a>
           </li>
         ))}

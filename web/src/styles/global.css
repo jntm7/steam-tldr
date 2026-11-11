@@ -492,6 +492,9 @@ main.pill-main { margin-left: 0; padding: 0; }
   opacity: 1; transform: none; }
 .section-dots.labeled a:hover .dot-label { color: var(--text); }
 .section-dots.labeled a[aria-current] .dot-label { color: var(--accent-word); font-weight: 700; }
+/* Gated dots */
+.section-dots[data-gated] { opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+.section-dots[data-gated].past { opacity: 1; pointer-events: auto; }
 .page-outline.narrow-only { display: none; }
 
 /* Dev-only refresh button, beside the logo */
@@ -552,10 +555,10 @@ main.pill-main { margin-left: 0; padding: 0; }
   .page-hero { padding-top: 5rem; padding-bottom: 1.75rem; }
   .dev-dock { display: none; }
   .hero .buttons .button { flex: 1 1 auto; justify-content: center; padding: 0 1.25rem; }
+  .hero .buttons .button-group { flex: 1 1 100%; }
   .hero .buttons .button.icon { flex: none; padding: 0; }
   .scroll-hint { display: none; }
   .hero-card-themes { grid-template-columns: minmax(0, 1fr); gap: 0.5rem; }
-  .hero .buttons .button-group { flex: 1 1 100%; }
   .hero-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .hero-stats > div { padding: 0 0.6rem; }
   .hero-stats dd { font-size: 1rem; }
@@ -839,8 +842,8 @@ kbd { padding: 0.1rem 0.4rem; border: 1px solid var(--border); border-radius: 0.
 @media (prefers-reduced-motion: reduce) { .stat-graphic i { animation: none !important; } }
 .hero-stats > div { display: flex; flex-direction: column-reverse; justify-content: flex-end; }
 
-/* Landing sections: one large featured game, then ruled rows with a thin score meter and a headline figure */
-.home-panel .feature { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 2rem 3rem; margin-top: 1.25rem; align-items: start; }
+/* Landing sections */
+.home-panel .feature { display: grid; grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.3fr); gap: 2rem 3rem; margin-top: 1.25rem; align-items: start; }
 .feature-main { display: block; color: inherit; text-decoration: none; }
 .feature-art { position: relative; aspect-ratio: 460 / 215; overflow: hidden; border-radius: 0.75rem; background: var(--cover-bg); transition: transform 0.25s ease; }
 .feature-art img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s ease; }
@@ -850,7 +853,7 @@ kbd { padding: 0.1rem 0.4rem; border: 1px solid var(--border); border-radius: 0.
 .feature-genres { grid-column: 1; font-size: 0.85rem; color: var(--muted); }
 .feature-figure { grid-column: 2; grid-row: 1 / span 2; text-align: right; }
 .feature-figure b, .feature-row-figure b { display: block; font-size: clamp(1.6rem, 2.6vw, 2.4rem); font-weight: 700; line-height: 1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
-.feature-figure span, .feature-row-figure span { display: block; margin-top: 0.3rem; font-family: var(--mono, ui-monospace, monospace); font-size: 0.64rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.feature-figure span, .feature-row-figure span { display: block; margin-top: 0.2rem; font-family: var(--mono, ui-monospace, monospace); font-size: 0.64rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
 .feature-score { grid-column: 1 / -1; display: flex; align-items: center; gap: 0.75rem; margin-top: 0.7rem; font-size: 0.85rem; color: var(--tone); }
 .feature-score.small { margin-top: 0.3rem; font-size: 0.78rem; }
 .mini-meter { flex: none; width: 6rem; height: 3px; background: color-mix(in srgb, var(--text) 14%, transparent); }
@@ -870,4 +873,18 @@ kbd { padding: 0.1rem 0.4rem; border: 1px solid var(--border); border-radius: 0.
 .feature-row-figure { text-align: right; }
 .feature-row-figure b { font-size: 1.25rem; }
 @media (max-width: 900px) { .home-panel .feature { grid-template-columns: minmax(0, 1fr); } }
-@media (max-width: 480px) { .feature-row { grid-template-columns: 1.4rem 4rem minmax(0, 1fr) auto; gap: 0.6rem; } .mini-meter { width: 4rem; } }
+@media (max-width: 760px) {
+  .hero, #rows.page-width { padding-left: 1.5rem; padding-right: 1.5rem; }
+  .hero .buttons { gap: 0.9rem; margin: 2rem 0; }
+  .hero-stats { margin-top: 0.5rem; }
+  .hero-card { margin-top: 2.5rem; }
+  .home-panel { padding: 2.5rem 0; }
+  .home-panel .caption { margin-bottom: 1.5rem; }
+  .home-panel .feature { gap: 2rem; }
+  .feature-info { gap: 0.4rem 1.25rem; margin-top: 1.1rem; }
+  .feature-row { grid-template-columns: 1.4rem 5rem minmax(0, 1fr) auto; gap: 0.9rem; padding: 1.15rem 0; }
+  .feature-row-name { white-space: normal; line-height: 1.3; }
+  .mini-meter { display: none; }
+  .feature-score { margin-top: 0.5rem; }
+}
+@media (max-width: 400px) { .feature-row { grid-template-columns: 4.5rem minmax(0, 1fr) auto; } .feature-rank { display: none; } }

@@ -1,12 +1,9 @@
 ---
-// Page outline as a column of dots fixed to the right edge, outside the content: the section in view becomes a tall pill.
-// By default the column hugs the window edge and a dot's name shows beside it when active, hovered or focused; with `labeled`
-// it sits in the strip Page.astro keeps free right of the content, and every name shows beside its dot as plain text (the
-// active one highlighted). Items are (anchor, label)
-const { items, labeled = false } = Astro.props;
+// Side dots outline, items are (anchor, label)
+const { items, labeled = false, after = null } = Astro.props;
 ---
 
-<nav class:list={["section-dots", { labeled }]} aria-label="On this page">
+<nav class:list={["section-dots", { labeled }]} data-gated={after ?? undefined} aria-label="On this page">
   {items.map(([anchor, label], i) => (
     <a href={`#${anchor}`} data-dot={anchor} aria-current={i === 0 ? "true" : undefined}>
       <span class="dot-label">{label}</span>
@@ -16,8 +13,9 @@ const { items, labeled = false } = Astro.props;
 </nav>
 
 <script>
-  // Mark the last section whose top has passed a reference line. The line slides from 40% of the screen height at the top of the page
-  // to the bottom edge at the end of it, so short sections near the bottom (which can never reach the middle) still get their turn
+  // Active section: last one past a line sliding from 40% to the bottom
+  const nav = document.querySelector(".section-dots");
+  const gate = nav?.dataset.gated ? document.getElementById(nav.dataset.gated) : null;
   const dots = [...document.querySelectorAll("[data-dot]")];
   const sections = dots.map((dot) => document.getElementById(dot.dataset.dot));
   const update = () => {
@@ -27,6 +25,8 @@ const { items, labeled = false } = Astro.props;
     let active = 0;
     sections.forEach((section, i) => { if (section && section.getBoundingClientRect().top <= line) active = i; });
     dots.forEach((dot, i) => (i === active ? dot.setAttribute("aria-current", "true") : dot.removeAttribute("aria-current")));
+    // Hidden until the gate section scrolls away
+    if (gate) nav.classList.toggle("past", gate.getBoundingClientRect().bottom < innerHeight * 0.55);
   };
   addEventListener("scroll", update, { passive: true });
   addEventListener("resize", update);
