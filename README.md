@@ -54,7 +54,7 @@ Read a random positive or negative review in full, fetched directly from Steam's
 
 ### Curated game library
 
-SteamTLDR's dataset currently includes 150 games and training on 640,000+ reviews.
+SteamTLDR's dataset currently includes 200 games and training on 820,000+ reviews.
 
 ![SteamTLDR Games](https://github.com/user-attachments/assets/f0cc4235-b806-4069-8303-01903e18b4d1)
 
@@ -70,8 +70,8 @@ SteamTLDR's dataset currently includes 150 games and training on 640,000+ review
 2. **Judge sentiment**: a TF-IDF + logistic regression model, trained on each review's thumbs up or down. It works in two steps:
    - **TF-IDF** turns each review into numbers by counting its words and two-word phrases, giving more weight to distinctive ones ("crashes", "refund") than to common ones ("the", "game").
    - **Logistic regression** learns one weight per word or phrase, so that adding up a review's weights gives a positive score for thumbs-up reviews and a negative one for thumbs-down. The sum becomes a probability between 0 and 1.
-   - It reads word counts, not sentence structure, so it is fast (trained on 640k+ reviews in minutes) and easy to inspect, and it beat an off-the-shelf DistilBERT here. Whole games are held out for testing, so the model is scored on games it has never seen.
-3. **Find themes**: reviews are split into clauses ("great story *but* constant crashes") and matched against 15 keyword themes, like performance, price and story.
+   - It reads word counts, not sentence structure, so it is fast (trained on 820k+ reviews in minutes) and easy to inspect, and it beat an off-the-shelf DistilBERT here. Whole games are held out for testing, so the model is scored on games it has never seen.
+3. **Find themes**: reviews are split into clauses ("great story *but* constant crashes") and matched against 16 keyword themes, like performance, price and story.
 4. **Spot outliers**: a month is flagged when negative reviews surge or the score drops well below that game's usual level.
 5. **Publish**: each game's summary is saved as a small JSON file that the web app reads.
 
@@ -83,10 +83,10 @@ On three games that it never saw during training, across 14,517 reviews:
 
 | Metric | Score |
 |---|---|
-| Accuracy | 91.7% |
-| Precision (negative reviews) | 0.889 |
-| Recall (negative reviews) | 0.927 |
-| F1 (negative reviews) | 0.907 |
+| Accuracy | 92.0% |
+| Precision (negative reviews) | 0.893 |
+| Recall (negative reviews) | 0.929 |
+| F1 (negative reviews) | 0.911 |
 
 ### Transformer comparison
 
@@ -104,7 +104,7 @@ DistilBERT was trained on movie reviews, so gamer slang like "feet first into he
 
 ### Outliers
 
-- 76 events (60 negative surges, 16 score drops) across 47 of the 150 games.
+- 87 events (71 negative surges, 16 score drops) across 54 of the 200 games.
 - this includes controversies such as Helldivers 2's PlayStation Network backlash in May 2024.
 
 ## Known Limitations
@@ -129,7 +129,7 @@ steam-tldr/
 │   └── 06_transformers.py      # baseline vs DistilBERT
 ├── src/
 │   ├── fetch.py      # Steam API calls with caching and rate limiting
-│   ├── games.py      # the 150 games
+│   ├── games.py      # the 200 games
 │   ├── model.py      # sentiment model training and evaluation
 │   ├── themes.py     # theme matching and scoring
 │   ├── summarize.py  # builds each game's summary and flags outliers
@@ -164,7 +164,7 @@ uv run marimo edit notebooks/01_explore.py
 The notebooks read the raw review data, which isn't included in the repo. There are two options:
 
 - fetch it with `uv run python src/fetch.py <appid>` (this fetches individual games with their Steam app ID).
-- fetch it with `uv run python src/games.py` (this calls Steam's API for all 150 games and takes a long time)
+- fetch it with `uv run python src/games.py` (this calls Steam's API for all 200 games and takes a long time)
 
 Then train the model with `uv run python src/model.py`. Notebook 06 also needs `uv sync --group transformer`.
 
