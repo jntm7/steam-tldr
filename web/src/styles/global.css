@@ -9,7 +9,7 @@
   --accent: #3d8fd1;
   --accent-light: #66c0f4;
   --cover-bg: #1b2838;
-  --sidebar-width: 260px;
+  --sidebar-width: 230px;
 }
 
 /* Dark colours, from the system setting unless light is picked */
@@ -39,12 +39,15 @@ h2 { display: flex; align-items: center; gap: 0.6rem; margin: 2rem 0 1rem; font-
 hr { margin: 1.5rem 0; border: 0; border-top: 1px solid var(--border); }
 .caption { font-size: 0.875rem; color: var(--muted); }
 
+/* Text for screen readers only, so icon-only labels still have a name */
+.sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+
 /* Sidebar */
 .sidebar { position: fixed; inset: 0 auto 0 0; z-index: 10; display: flex; flex-direction: column; gap: 1.25rem; width: var(--sidebar-width);
   padding: 2.75rem 1rem 1.25rem; overflow-y: auto; background: var(--sidebar-bg); }
 /* Logo and page links, each closed off by a divider */
 .logo { padding-bottom: 1.25rem; border-bottom: 1px solid var(--border); }
-.logo img { display: block; height: 3.4rem; max-width: 100%; }
+.logo img { display: block; width: auto; height: 3.4rem; max-width: 100%; }
 .pages { display: flex; flex-direction: column; gap: 0.25rem; padding-bottom: 1.25rem; border-bottom: 1px solid var(--border); }
 .pages a { display: flex; align-items: center; gap: 1.5rem; padding: 0.6rem 0.9rem; border-radius: 0.6rem; color: inherit;
   font-size: 1.05rem; text-decoration: none; }
@@ -75,7 +78,7 @@ hr { margin: 1.5rem 0; border: 0; border-top: 1px solid var(--border); }
 .topbar { display: none; }
 
 /* Main column and footer */
-main { margin-left: var(--sidebar-width); padding: 3.5rem clamp(1rem, 4vw, 5rem) 2rem; }
+main { margin-left: var(--sidebar-width); padding: 3.5rem clamp(1rem, 3vw, 3.5rem) 2rem; }
 .site-footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.25rem 1.5rem; margin-top: 3rem; padding-top: 1rem;
   border-top: 1px solid var(--border); font-size: 0.8rem; color: var(--muted); }
 
@@ -83,7 +86,7 @@ main { margin-left: var(--sidebar-width); padding: 3.5rem clamp(1rem, 4vw, 5rem)
 @media (max-width: 760px) {
   .topbar { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; justify-content: space-between; height: 3.5rem;
     padding: 0 1rem; background: var(--sidebar-bg); }
-  .topbar img { display: block; height: 2.2rem; }
+  .topbar img { display: block; width: auto; height: 2.2rem; }
   .topbar button { display: flex; padding: 0.4rem; border: 0; background: none; color: inherit; cursor: pointer; }
   .sidebar { top: 3.5rem; padding-top: 1rem; transform: translateX(-100%); transition: transform 0.2s ease; }
   .sidebar .logo { display: none; }
@@ -105,8 +108,8 @@ main { margin-left: var(--sidebar-width); padding: 3.5rem clamp(1rem, 4vw, 5rem)
 
 /* Bordered stat panel: cells sit on a border-coloured background with 1px gaps, so the gaps draw the dividers in any layout */
 .stats { display: grid; grid-auto-columns: minmax(0, 1fr); grid-auto-flow: column; gap: 1px; overflow: hidden;
-  border: 1px solid var(--border); border-radius: 0.5rem; background: var(--border); background-clip: padding-box; }
-.stats > div { min-width: 0; padding: 1rem; background: var(--bg); }
+  border: 1px solid var(--border); border-radius: 0.75rem; background: var(--border); background-clip: padding-box; }
+.stats > div { min-width: 0; padding: 1rem 1.1rem; background: color-mix(in srgb, var(--text) 4%, var(--bg)); }
 .cell-label { margin-bottom: 0.35rem; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); }
 .cell-stat { font-size: 1.75rem; font-weight: 700; line-height: 1.2; overflow-wrap: anywhere; }
 
@@ -118,11 +121,19 @@ main { margin-left: var(--sidebar-width); padding: 3.5rem clamp(1rem, 4vw, 5rem)
 @media (max-width: 640px) { .stats { grid-template-columns: minmax(0, 1fr); } }
 
 /* Game cards */
-.library { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1.5rem 1.25rem; }
+/* Cards per row follow the width of the library box: 10, 5 or 2, which all divide a page of 50 evenly */
+.library-box { container-type: inline-size; }
+.library { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.9rem 0.55rem; }
+@container (min-width: 480px) { .library { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+@container (min-width: 940px) { .library { grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 0.8rem 0.5rem; } }
 .game-card { display: block; min-width: 0; color: inherit; text-decoration: none; }
 .game-cover { position: relative; aspect-ratio: 2 / 3; overflow: hidden; border-radius: 6px; background: var(--cover-bg);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25); transition: transform 0.15s ease, box-shadow 0.15s ease; }
 .game-card:hover .game-cover { transform: translateY(-4px); box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35); }
+.game-cover::after { content: ""; position: absolute; z-index: 1; pointer-events: none; }
+.game-cover::after { inset: 0; border-radius: inherit; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+  background: linear-gradient(115deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0) 34%, rgba(255, 255, 255, 0) 62%, rgba(255, 255, 255, 0.07)); }
+.game-badge, .game-score-badge, .game-hover { z-index: 2; }
 .game-cover img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .game-cover .backdrop { filter: blur(14px) brightness(0.55); transform: scale(1.3); }
 .game-cover .front { position: absolute; inset: 0; height: auto; margin: auto; object-fit: contain; }
@@ -133,36 +144,73 @@ main { margin-left: var(--sidebar-width); padding: 3.5rem clamp(1rem, 4vw, 5rem)
 .game-score { margin-top: 0.1rem; font-size: 0.82rem; }
 .game-reviews { margin-top: 0.05rem; font-size: 0.78rem; color: var(--muted); }
 
-/* Home page: trending games as one row of small cards, scrolling sideways when the screen is too narrow */
-.home-library { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(104px, 1fr); gap: 1rem; max-width: calc(8 * 132px + 7 * 1rem);
+/* Compact library card: a game case with the cover in a frame and the name on a label strip along the bottom; the score badge sits on the cover, details show on hover */
+.game-card.compact { display: flex; flex-direction: column; padding: 3px 3px 0; overflow: hidden; border: 1px solid var(--border); border-radius: 8px;
+  background: color-mix(in srgb, var(--text) 9%, var(--bg)); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.22); transition: transform 0.15s ease, box-shadow 0.15s ease; }
+.game-card.compact:hover, .game-card.compact:focus-visible { transform: translateY(-4px); box-shadow: 0 10px 22px rgba(0, 0, 0, 0.38); }
+.game-card.compact .game-cover { box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4); transition: none; }
+.game-card.compact:hover .game-cover { transform: none; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4); }
+.game-label { display: flex; align-items: center; justify-content: center; min-height: 2.9em; margin: 3px -3px 0; padding: 0.3rem 0.4rem;
+  border-top: 1px solid var(--border); background: color-mix(in srgb, var(--text) 5%, var(--bg)); font-size: 0.82rem; font-weight: 700; line-height: 1.25; text-align: center; }
+.game-label span { display: -webkit-box; overflow: hidden; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.game-score-badge { position: absolute; top: 0.35rem; left: 0.35rem; padding: 0.05rem 0.4rem; border-radius: 0.35rem; background: rgba(15, 20, 28, 0.85);
+  font-size: 0.75rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.game-hover { position: absolute; inset: auto 0 0; display: flex; flex-direction: column; gap: 0.1rem; padding: 1.5rem 0.45rem 0.45rem;
+  background: linear-gradient(transparent, rgba(8, 12, 18, 0.92) 55%); color: #e6edf3; font-size: 0.7rem; line-height: 1.25; opacity: 0; transition: opacity 0.15s ease; }
+.game-hover b { font-size: 0.75rem; }
+.game-hover span { opacity: 0.8; }
+.game-card:hover .game-hover, .game-card:focus-visible .game-hover { opacity: 1; }
+
+/* Home page: New and Trending side by side, stacked into two rows below 1200px; each is a row of small cards scrolling sideways */
+.home-columns { display: flex; gap: 3.5rem; }
+.home-columns section { flex: 1 1 0; min-width: 0; max-width: calc(5 * 120px + 4 * 0.75rem); container-type: inline-size; }
+@media (max-width: 1200px) { .home-columns { flex-direction: column; gap: 0; } .home-columns section { max-width: 100%; } }
+.home-library { display: grid; grid-auto-flow: column; grid-auto-columns: clamp(90px, calc((100cqw - 3rem) / 5), 120px); gap: 0.75rem;
   padding: 6px 0 0.75rem; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: thin; }
 .home-library .game-card { scroll-snap-align: start; }
 .home-library .game-name { font-size: 0.85rem; }
 .home-library .game-score { font-size: 0.75rem; }
 .home-library .game-reviews { font-size: 0.7rem; }
 
-/* Game list rows */
-.library-list { display: flex; flex-direction: column; gap: 0.5rem; }
-.game-row { display: flex; align-items: center; gap: 1rem; padding: 0.4rem 0.75rem 0.4rem 0.4rem; border: 1px solid var(--border); border-radius: 8px;
-  color: inherit; text-decoration: none; transition: background 0.15s ease; }
-.game-row:hover { background: color-mix(in srgb, var(--text) 8%, transparent); }
-.game-row img, .row-empty { flex: none; width: 138px; aspect-ratio: 460 / 215; border-radius: 4px; object-fit: cover; background: var(--cover-bg); }
-.row-name { flex: 1; min-width: 0; overflow: hidden; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+/* Game table: sortable headers, small banner with name and studio, score bar, review count, genres */
+.library-table { width: 100%; table-layout: fixed; border-collapse: collapse; }
+.library-table th { padding: 0.4rem 0.75rem; border-bottom: 1px solid var(--border); font-size: 0.8rem; font-weight: 600; text-align: left; color: var(--muted); }
+.library-table th button { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0; border: 0; background: none; color: inherit; font: inherit; cursor: pointer; }
+.library-table th button:hover, .library-table th[aria-sort] button { color: var(--text); }
+.library-table td { padding: 0.4rem 0.75rem; border-bottom: 1px solid var(--border); font-size: 0.9rem; vertical-align: middle; }
+.library-table tr { position: relative; }
+.library-table tbody tr:hover { background: color-mix(in srgb, var(--text) 8%, transparent); }
+.library-table .col-game { padding-left: 0.4rem; }
+.game-cell { display: flex; align-items: center; gap: 1rem; min-width: 0; }
+.library-table .col-game img, .row-empty { flex: none; width: 110px; height: auto; aspect-ratio: 460 / 215; border-radius: 4px; object-fit: cover; background: var(--cover-bg); }
+.row-name { min-width: 0; overflow: hidden; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.row-name a { color: inherit; text-decoration: none; }
+.row-name a::after { content: ""; position: absolute; inset: 0; }
 .row-name small { display: block; overflow: hidden; font-weight: 400; text-overflow: ellipsis; color: var(--muted); }
-.row-reviews { flex: none; width: 8rem; font-size: 0.85rem; text-align: right; color: var(--muted); }
-.row-score { flex: none; width: 15rem; font-size: 0.9rem; text-align: right; }
-@media (max-width: 640px) { .row-reviews { display: none; } .row-score { width: auto; } .game-row img, .row-empty { width: 96px; } }
+.library-table .col-score { width: 15rem; }
+.score-line { display: flex; align-items: baseline; gap: 0.5rem; }
+.score-line small { color: var(--muted); }
+.score-track { display: block; height: 5px; margin-top: 0.3rem; border-radius: 3px; background: color-mix(in srgb, var(--text) 12%, transparent); }
+.score-track span { display: block; height: 100%; border-radius: 3px; }
+.library-table .col-reviews { width: 7rem; font-variant-numeric: tabular-nums; }
+.library-table .col-genres { width: 13rem; color: var(--muted); }
+@media (max-width: 900px) { .library-table .col-genres { display: none; } }
+@media (max-width: 640px) { .library-table .col-reviews { display: none; } .library-table .col-score { width: 8rem; } .score-line small { display: none; } .library-table .col-game img, .row-empty { width: 80px; } }
 
-/* Library toolbar: search with the genre chips below on the left, sort, score and view stacked on the right */
-.toolbar { display: grid; grid-template-columns: minmax(0, 1fr) 17rem; grid-template-areas: "search sort" "chips score" "chips view"; align-items: start;
-  gap: 0.75rem 1rem; margin-bottom: 1rem; padding: 1rem; border: 1px solid var(--border); border-radius: 0.5rem; }
-.toolbar-search { grid-area: search; }
-.toolbar-sort { grid-area: sort; }
-.toolbar-score { grid-area: score; }
-.toolbar-view { grid-area: view; }
-.toolbar-sort .field-label, .toolbar-score .field-label, .toolbar-view .field-label { width: 4.5rem; }
+/* Library bar: the filter row and the result count with page buttons in one panel */
+.library-bar { margin-bottom: 1rem; padding: 0.65rem; border: 1px solid var(--border); border-radius: 0.75rem; background: color-mix(in srgb, var(--text) 4%, var(--bg)); }
+.toolbar { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+.toolbar-search { flex: 1 1 14rem; }
+.toolbar .field:not(.toolbar-search):not(.toolbar-view) { flex: 1 1 13rem; }
+.toolbar .toolbar-sort { flex-basis: 16.5rem; }
+.toolbar-view { flex: none; }
+.toolbar-view button { width: 3rem; flex: none; }
+.library-box { scroll-margin-top: 1rem; }
 
-/* Result count with a Clear filters link beside it */
+/* Result count with a Clear filters link beside it, page buttons on the right */
+.results-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem 1rem; margin-top: 0.65rem; padding: 0.65rem 0.25rem 0; border-top: 1px solid var(--border); }
+.results-bar .results { margin: 0; }
+.results.empty { margin: 0.65rem 0 0; padding: 0.65rem 0.25rem 0; border-top: 1px solid var(--border); }
 .results { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem 1rem; }
 .link-button { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0; border: 0; background: none; color: var(--accent);
   font: inherit; cursor: pointer; }
@@ -172,22 +220,29 @@ main { margin-left: var(--sidebar-width); padding: 3.5rem clamp(1rem, 4vw, 5rem)
 .field-label { display: flex; flex: none; align-items: center; padding: 0 12px; background: color-mix(in srgb, var(--text) 12%, transparent);
   font-size: 14px; color: var(--muted); }
 .field input, .field select { flex: 1; min-width: 0; padding: 0 0.75rem; border: 0; outline: 0; background: none; color: inherit; font: inherit; font-size: 0.95rem; }
-.field select { padding-left: 1.1rem; }
+.field select { padding: 0 2.25rem 0 1.1rem; appearance: none; cursor: pointer; }
+.field select option { background: var(--bg); color: var(--text); }
+.field:has(> select) { position: relative; }
+.field:has(> select)::after { content: ""; position: absolute; top: 50%; right: 0.85rem; width: 16px; height: 16px; background: color-mix(in srgb, var(--text) 65%, transparent); pointer-events: none;
+  transform: translateY(-50%); transition: background 0.15s;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") center / contain no-repeat; }
+.field:has(> select):hover::after, .field:has(> select):focus-within::after { background: var(--text); }
 .field button { flex: 1; display: flex; align-items: center; justify-content: center; border: 0; border-left: 1px solid var(--border); background: none; color: inherit; cursor: pointer; }
 .field button.on { background: color-mix(in srgb, var(--accent) 18%, transparent); color: var(--accent); }
-@media (max-width: 1000px) { .toolbar { grid-template-columns: minmax(0, 1fr); grid-template-areas: "search" "sort" "score" "view" "chips"; } }
 
-/* Genre chips under the search box, past a divider, their bottom lined up with the View row */
-.chips { grid-area: chips; align-self: end; display: flex; flex-wrap: wrap; gap: 0.4rem; padding-top: 0.75rem; border-top: 1px solid var(--border); }
-.chips button { display: flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0.75rem; border: 1px solid var(--border); border-radius: 999px;
-  background: none; color: inherit; font: inherit; font-size: 0.85rem; cursor: pointer; transition: background 0.15s, border-color 0.15s; }
-.chips button:hover { border-color: var(--accent); }
-.chips button span { font-size: 0.75rem; color: var(--muted); font-variant-numeric: tabular-nums; }
-.chips button.on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 18%, transparent); color: var(--accent); font-weight: 700; }
-.chips button.on span { color: inherit; }
+/* Page buttons */
+.pagination { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem; }
+.pagination.bottom { justify-content: center; margin-top: 2rem; }
+.pagination button { display: flex; align-items: center; justify-content: center; min-width: 2rem; height: 2rem; padding: 0 0.5rem; border: 1px solid var(--border);
+  border-radius: 8px; background: none; color: inherit; font: inherit; font-size: 0.85rem; cursor: pointer; }
+.pagination button:hover:not(:disabled) { border-color: var(--accent); }
+.pagination button:disabled { opacity: 0.4; cursor: default; }
+.pagination button.on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 18%, transparent); color: var(--accent); font-weight: 700; }
+.pagination .gap { color: var(--muted); }
 
 /* FAQ theme grid */
-.theme-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 0 1.5rem; margin-top: 1.5rem; }
+.theme-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 0.75rem; margin-top: 1.5rem; }
+.theme-grid .theme-row { margin: 0; padding: 0.75rem 0.9rem; border: 1px solid var(--border); border-radius: 0.6rem; background: color-mix(in srgb, var(--text) 4%, var(--bg)); }
 .theme-row { margin-bottom: 1.1rem; }
 .theme-head { display: flex; align-items: center; gap: 0.5rem; font-weight: 700; }
 .theme-head svg { flex: none; width: 20px; height: 20px; color: var(--theme-color, var(--accent)); }
@@ -196,10 +251,17 @@ main { margin-left: var(--sidebar-width); padding: 3.5rem clamp(1rem, 4vw, 5rem)
 .theme-bar { height: 100%; border-radius: 4px; background: var(--theme-color, var(--accent)); }
 .theme-quote { font-size: 0.92rem; font-style: italic; color: var(--muted); }
 
-/* Game page header: banner, name and a link back to the library */
-.game-header { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 1.25rem; }
-.game-header img { width: 154px; height: auto; border-radius: 6px; }
-.game-header h1 { flex: 1; min-width: 12rem; margin: 0; font-size: 3.25rem; }
+/* Game page header: a small link back to the library, then a large banner beside the name, store link and update date */
+.back-link { display: inline-flex; align-items: center; gap: 0.4rem; margin-bottom: 0.9rem; font-size: 0.9rem; color: var(--muted); text-decoration: none; }
+.back-link svg { width: 1rem; height: 1rem; }
+.back-link:hover { color: var(--accent); }
+.game-header { display: flex; flex-wrap: wrap; align-items: stretch; gap: 1rem 1.75rem; }
+.game-header .banner { flex: none; width: min(100%, 320px); height: auto; border-radius: 8px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35); }
+.game-title { display: flex; flex: 1; flex-direction: column; justify-content: space-between; gap: 0.75rem; min-width: 12rem; }
+.game-header h1 { margin: 0; font-size: 3.25rem; line-height: 1; }
+.game-links { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem 1.75rem; }
+.updated { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.8rem; color: var(--muted); }
+.updated svg { width: 0.9rem; height: 0.9rem; }
 @media (max-width: 760px) { .game-header h1 { font-size: 2.25rem; } }
 .button.small { height: 2.5rem; padding: 0 1rem; gap: 0.5rem; font-size: 0.95rem; background: none; cursor: pointer; font-family: inherit; }
 .button.small svg { width: 1.1rem; height: 1.1rem; }
@@ -266,3 +328,18 @@ main { margin-left: var(--sidebar-width); padding: 3.5rem clamp(1rem, 4vw, 5rem)
 .review-meta { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; }
 .review-meta svg { flex: none; }
 .review-text { line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
+
+/* Dev-only refresh dialog and its sidebar button (never in the built site) */
+.dev-refresh-open { display: flex; align-items: center; justify-content: center; gap: 0.4rem; width: 100%; margin-bottom: 1rem; padding: 0.4rem 0; border: 1px dashed var(--border); border-radius: 0.7rem; background: none; color: inherit; font: inherit; font-size: 0.85rem; cursor: pointer; }
+.dev-refresh-dialog { width: min(32rem, calc(100vw - 2rem)); padding: 1.25rem; border: 1px solid var(--border); border-radius: 1rem; background: var(--bg); color: var(--text); }
+.dev-refresh-dialog::backdrop { background: rgb(0 0 0 / 0.5); }
+.dev-refresh-dialog h2 { margin: 0 0 0.25rem; font-size: 1.1rem; }
+.dev-refresh-dialog p { margin: 0 0 1rem; font-size: 0.85rem; opacity: 0.75; }
+.dev-refresh-buttons { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.dev-refresh-dialog button { padding: 0.45rem 0.9rem; border: 1px solid var(--border); border-radius: 0.5rem; background: none; color: inherit; font: inherit; cursor: pointer; }
+.dev-refresh-dialog button:disabled { opacity: 0.5; cursor: wait; }
+.dev-refresh-progress { margin-top: 1rem; }
+.dev-refresh-progress progress { width: 100%; height: 0.7rem; accent-color: #3d8fd1; }
+.dev-refresh-status { margin: 0.4rem 0 0; font-size: 0.85rem; }
+.dev-refresh-log { margin: 0.75rem 0 0; max-height: 9rem; overflow: auto; white-space: pre-wrap; font-size: 0.75rem; opacity: 0.8; }
+.dev-refresh-close { margin-top: 1rem; }
