@@ -2,26 +2,25 @@ import { useEffect, useState } from "react";
 import { History } from "lucide-react";
 import { RECENT_KEY, gameHref } from "../lib/games.js";
 
-// Sidebar list of recently viewed games, read from this browser once the page loads
+// Chips shown at most, newest first
+const SHOWN = 5;
+
+// Recently viewed games as a row of chips, read from this browser once the page loads
 export default function RecentGames({ names }) {
   const [recent, setRecent] = useState(null);
   useEffect(() => {
     try {
-      setRecent(JSON.parse(localStorage.getItem(RECENT_KEY) ?? "[]").filter((appid) => names[appid]));
+      setRecent(JSON.parse(localStorage.getItem(RECENT_KEY) ?? "[]").filter((appid) => names[appid]).slice(0, SHOWN));
     } catch {
       setRecent([]);
     }
   }, []);
 
   return (
-    <div>
-      <div className="outline-title">Recently viewed</div>
-      {recent?.length === 0 && <div className="outline-empty">Games you open will show up here.</div>}
-      {recent?.length > 0 && (
-        <nav className="outline">
-          {recent.map((appid) => <a key={appid} href={gameHref(appid)}><History /><span>{names[appid]}</span></a>)}
-        </nav>
-      )}
-    </div>
+    <nav className="recent-chips" aria-label="Recently viewed">
+      <span className="recent-label"><History aria-hidden="true" />Recently viewed</span>
+      {recent?.length === 0 && <span className="recent-empty">Games you open will show up here.</span>}
+      {recent?.map((appid) => <a key={appid} href={gameHref(appid)}>{names[appid]}</a>)}
+    </nav>
   );
 }

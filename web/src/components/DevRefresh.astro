@@ -4,7 +4,7 @@ import { RefreshCw } from "lucide-react";
 const { appid } = Astro.props;
 ---
 
-<button class="dev-refresh-open" type="button"><RefreshCw size={16} />Refresh data</button>
+<button class="dev-refresh-open" type="button" title="Refresh data" aria-label="Refresh data"><RefreshCw size={16} /><span class="dev-label">Refresh data</span></button>
 
 <dialog class="dev-refresh-dialog" data-appid={appid}>
   <h2>Refresh review data</h2>

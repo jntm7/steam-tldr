@@ -1,5 +1,5 @@
 ---
-import Base from "../layouts/Base.astro";
+import Page from "../layouts/Page.astro";
 import Library from "../components/Library.jsx";
 import RecentGames from "../components/RecentGames.jsx";
 import { games } from "../lib/data.js";
@@ -13,8 +13,9 @@ const names = Object.fromEntries(games.map((game) => [game.appid, gameName(game)
 const withArt = await Promise.all(games.map(withImages));
 ---
 
-<Base title="Games">
-  <RecentGames slot="sidebar" names={names} client:load />
-  <h1>Games</h1>
+<Page title="Games" kicker="Library"
+  lede={`Search, filter by genre or score, and open one to see what players love and complain about.`}>
+  <Fragment slot="heading">Browse every <em class="accent-word">game</em></Fragment>
+  <RecentGames slot="header" names={names} client:load />
   <Library games={withArt} client:load />
-</Base>
+</Page>

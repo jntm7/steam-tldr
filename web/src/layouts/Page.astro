@@ -1,0 +1,49 @@
+---
+import SiteHead from "../components/SiteHead.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import SiteNav from "../components/SiteNav.astro";
+import PageMotion from "../components/PageMotion.astro";
+import HeroPattern from "../components/HeroPattern.astro";
+import SectionDots from "../components/SectionDots.astro";
+
+// Inner pages (Games, Outliers, FAQ, game pages): the Home nav, a header band on the icon pattern, then the content.
+// The outline is `dots`, (anchor, label) pairs drawn as a column of dots with their names, fixed in a strip kept free right of
+// the header and content and lined up with the end of the nav. Narrow screens get a row of chips instead
+const { title, kicker, lede, dots, heroId } = Astro.props;
+const withDots = Boolean(dots);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <SiteHead title={title} />
+  </head>
+  <body class="pill-layout">
+    <SiteNav />
+    <main class="pill-main">
+      <header class="page-hero" id={heroId}>
+        <div class="hero-backdrop" aria-hidden="true">{Astro.slots.has("backdrop") ? <slot name="backdrop" /> : <HeroPattern />}</div>
+        <div class:list={["page-width", { "with-dots": withDots }]}>
+          <div>
+            {Astro.slots.has("kicker") ? <div class="page-kicker"><slot name="kicker" /></div> : kicker && <div class="page-kicker">{kicker}</div>}
+            <h1 class="page-title"><slot name="heading" /></h1>
+            {lede && <p class="page-lede">{lede}</p>}
+            <slot name="header" />
+          </div>
+          {Astro.slots.has("header-wide") && <div class="page-hero-wide"><slot name="header-wide" /></div>}
+        </div>
+      </header>
+      <div class:list={["page-width", "page-body", { "with-dots": withDots }]}>
+        {withDots && (
+          <nav class="page-outline narrow-only" aria-label="Jump to section">
+            <div class="outline">{dots.map(([anchor, label]) => <a href={`#${anchor}`}><span>{label}</span></a>)}</div>
+          </nav>
+        )}
+        <div class="page-content"><slot /></div>
+      </div>
+      <div class="page-footer"><SiteFooter /></div>
+    </main>
+    {withDots && <SectionDots items={dots} labeled />}
+    <PageMotion />
+  </body>
+</html>

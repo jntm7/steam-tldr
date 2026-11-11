@@ -1,0 +1,19 @@
+---
+import "../styles/global.css";
+
+const { title } = Astro.props;
+---
+
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>{title ? `SteamTLDR - ${title}` : "SteamTLDR"}</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+<link rel="icon" href="/favicon.png" type="image/png" sizes="128x128" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Quantico:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet" />
+<script is:inline>
+  try { document.documentElement.dataset.theme = localStorage.getItem("steamtldr_theme") || "system"; }
+  catch { document.documentElement.dataset.theme = "system"; }
+</script>

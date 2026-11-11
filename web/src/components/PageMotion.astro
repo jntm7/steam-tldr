@@ -1,0 +1,67 @@
+<script>
+  const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // Number with thousands separators
+  const format = (value) => Math.round(value).toLocaleString("en");
+
+  // Count a [data-count] number up from zero, easing out, over about a second (timers, not animation frames, so it also runs where those are paused)
+  function countUp(element) {
+    const target = Number(element.dataset.count);
+    const start = performance.now();
+    const step = () => {
+      const t = Math.min(1, (performance.now() - start) / 1200);
+      element.textContent = format(target * (1 - (1 - t) ** 3));
+      if (t < 1) setTimeout(step, 16);
+    };
+    step();
+  }
+
+  // Fade [data-reveal] blocks in and count [data-count] numbers up the first time they scroll into view
+  if (!calm && "IntersectionObserver" in window) {
+    document.documentElement.classList.add("reveal-ready");
+    const observer = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        observer.unobserve(entry.target);
+        entry.target.classList.add("revealed");
+        if (entry.target.dataset.count) countUp(entry.target);
+      }
+    }, { rootMargin: "0px 0px -10% 0px" });
+    document.querySelectorAll("[data-count]").forEach((element) => { element.textContent = "0"; });
+    document.querySelectorAll("[data-reveal], [data-count]").forEach((element) => observer.observe(element));
+  }
+
+  // Scroll-linked motion: the header backdrop trails the scroll, each section is scrubbed in by scroll position (heading first, then its content)
+  if (!calm) {
+    const backdrop = document.querySelector(".page-hero .hero-backdrop");
+    // Each section's heading, then its content items (a theme list counts as one item per row), revealed one after another
+    const sections = [...document.querySelectorAll(".page-content > .panel")].map((panel) => {
+      const heading = panel.querySelector(":scope > h2");
+      const items = [...panel.children].filter((child) => child !== heading).flatMap((child) => {
+        if (child.classList.contains("theme-list")) return [...child.children];
+        if (child.classList.contains("feature")) return [child.querySelector(".feature-main"), ...child.querySelectorAll(".feature-rest li")];
+        return [child];
+      });
+      return { panel, heading, items };
+    });
+    const show = (element, amount, rise) => {
+      element.style.opacity = amount.toFixed(3);
+      element.style.transform = `translate3d(0, ${((1 - amount) * rise).toFixed(1)}px, 0)`;
+    };
+    const clamp = (value, low, high) => Math.max(low, Math.min(high, value));
+    const update = () => {
+      const height = innerHeight;
+      if (backdrop) backdrop.style.transform = `translate3d(0, ${Math.min(scrollY * 0.3, 190)}px, 0)`;
+      for (const { panel, heading, items } of sections) {
+        const progress = clamp((height * 0.95 - panel.getBoundingClientRect().top) / (height * 0.6), 0, 1);
+        if (heading) show(heading, clamp(progress * 3, 0, 1), 28);
+        items.forEach((item, i) => show(item, clamp((progress - 0.25 - Math.min(i, 6) * 0.05) * 2.4, 0, 1), 32));
+        if (progress > 0.55) panel.classList.add("bars-go");
+      }
+    };
+    // Run on the scroll event itself: it keeps working where animation frames are paused (background or embedded panes)
+    addEventListener("scroll", update, { passive: true });
+    addEventListener("resize", update);
+    update();
+  }
+</script>

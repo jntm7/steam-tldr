@@ -1,0 +1,23 @@
+---
+import SiteHead from "../components/SiteHead.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import SiteNav from "../components/SiteNav.astro";
+import PageMotion from "../components/PageMotion.astro";
+
+const { title } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <SiteHead title={title} />
+  </head>
+  <body class="pill-layout">
+    <SiteNav />
+    <main class="pill-main">
+      <slot />
+      <div class="page-footer"><SiteFooter /></div>
+    </main>
+    <PageMotion />
+  </body>
+</html>
