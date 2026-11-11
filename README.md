@@ -1,34 +1,39 @@
 # SteamTLDR
 
-![SteamTLDR](https://github.com/user-attachments/assets/34b9dec6-3151-4632-8d2e-512c793ecd16)
-![License](https://img.shields.io/github/license/jntm7/steam-tldr)
-![Python](https://img.shields.io/badge/Python-3.14-3776AB?logo=python&logoColor=white)
-![Astro](https://img.shields.io/badge/Astro-site-BC52EE?logo=astro&logoColor=white)
-![scikit-learn](https://img.shields.io/badge/scikit--learn-ML-F7931E?logo=scikitlearn&logoColor=white)
-![pandas](https://img.shields.io/badge/pandas-data-150458?logo=pandas&logoColor=white)
-[![Live site](https://img.shields.io/badge/Live_site-steamtldr.jntam.ca-3d8fd1)](https://steamtldr.jntam.ca)
+<div align="center">
+   
+   [![SteamTLDR](https://github.com/user-attachments/assets/2e1210e3-fa4b-4794-a216-d1b1e3ea8f9f)](https://steamtldr.jntam.ca)
+   ![License](https://img.shields.io/github/license/jntm7/steam-tldr)
+   ![Python](https://img.shields.io/badge/Python-3.14-3776AB?logo=python&logoColor=white)
+   ![Astro](https://img.shields.io/badge/Astro-site-BC52EE?logo=astro&logoColor=white)
+   ![scikit-learn](https://img.shields.io/badge/scikit--learn-ML-F7931E?logo=scikitlearn&logoColor=white)
+   ![pandas](https://img.shields.io/badge/pandas-data-150458?logo=pandas&logoColor=white)
+   
+   [steamtldr.jntam.ca](https://steamtldr.jntam.ca)
+   
+</div>
 
 SteamTLDR is a personal project built to get hands-on practice with machine learning and sentiment analysis.
 
 > Portions of the project contain AI-assisted code. It is a learning exercise rather than a complete product.
 
-![SteamTLDR Home](https://github.com/user-attachments/assets/58e2b5fd-586a-4530-bdb8-1cc0515393c4)
+![SteamTLDR Home](https://github.com/user-attachments/assets/b3d54cfa-d795-4e78-b534-97bd4389d565)
 
 ## Features
+
+![SteamTLDR Helldivers 2](https://github.com/user-attachments/assets/c0454358-374b-4214-bd21-ed1473c52f64)
 
 ### Steam statistics
 
 Metrics including all-time percent positive, Steam's rating, and the last 30 days compared with the all-time score.
 
-### The Good & The Bad
+### Praise & Complaints
 
 Compare the most praised and most complained-about themes, each with an example quote from a real review.
 
 > Common praises: gameplay & combat, content, story & characters, graphics & art, co-op & multiplayer
 
 > Common complaints: bugs & crashes, price & monetization, developer updates, servers, cheaters
-
-![SteamTLDR Overview](https://github.com/user-attachments/assets/2e66ed7c-6e3e-481d-915d-63cd88ed4920)
 
 ### Recent sentiment
 
@@ -38,7 +43,7 @@ View what players have been unhappy about in the last 30 days, to spot new probl
 
 Monthly percent positive and review counts for a game's whole history.
 
-![SteamTLDR Graph](https://github.com/user-attachments/assets/0a634650-4eeb-4528-a675-71216964bfd4)
+![SteamTLDR Historical](https://github.com/user-attachments/assets/317b0ba8-05e4-44f3-a127-c7c6741f7395)
 
 ### Playtime analysis
 
@@ -56,8 +61,7 @@ Read a random positive or negative review in full, fetched directly from Steam's
 
 SteamTLDR's dataset currently includes 200 games and training on 820,000+ reviews.
 
-![SteamTLDR Games](https://github.com/user-attachments/assets/f0cc4235-b806-4069-8303-01903e18b4d1)
-
+![SteamTLDR Library](https://github.com/user-attachments/assets/6084533c-67cd-4df3-ac7e-99fd8a26298d)
 
 ## Methodology
 1. **Collect reviews**: for each game, up to 6,000 English reviews from Steam's public API, built from three groups:
