@@ -15,7 +15,7 @@ INDEX_NAME = "index.json"
 SETTINGS_NAME = "site.json"
 
 # Summary fields that are tables, saved with their column names so empty ones keep their shape
-TABLE_FIELDS = ["trend", "events", "playtime", "praise", "complaints", "recent_complaints", "shown_reviews"]
+TABLE_FIELDS = ["trend", "events", "playtime", "praise", "complaints", "recent_complaints", "playtime_complaints", "shown_reviews"]
 
 # Columns holding dates, restored to timestamps on load
 DATE_COLUMNS = ["start", "created"]
