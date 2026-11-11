@@ -495,8 +495,8 @@ def about_page() -> None:
     st.divider()
     st.subheader("Judging tone", anchor="judging-tone")
     st.markdown("""
-- A TF-IDF and logistic regression model, trained on about 426,000 reviews from 100 games with each review's thumbs up or down as its label.
-- Tested on three games it never saw (Helldivers 2, Cities: Skylines II, Hollow Knight: Silksong), it was right about 91% of the time.
+- A TF-IDF and logistic regression model, trained on about 647,000 reviews from 150 games with each review's thumbs up or down as its label.
+- Tested on three games it never saw (Helldivers 2, Cities: Skylines II, Hollow Knight: Silksong), it was right about 92% of the time.
 """)
 
     st.divider()
