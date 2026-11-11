@@ -1,8 +1,6 @@
 ---
 import ThemeSwitch from "./ThemeSwitch.astro";
 import SearchPalette from "./SearchPalette.jsx";
-import GithubIcon from "../assets/github.svg";
-import HuggingFaceIcon from "../assets/huggingface.svg";
 import { PAGES, isCurrent, pagePath } from "../lib/nav.js";
 
 const here = pagePath(Astro.url);
@@ -14,20 +12,20 @@ const gameId = here.match(/^\/game\/(\d+)\/$/)?.[1];
 
 <header class="site-nav">
   <div class="site-brand">
-    <a class="site-logo" href="/"><img src="/logo.svg" alt="SteamTLDR" width="264" height="64" /></a>
+    <a class="site-logo nav-pill" href="/"><img src="/logo.svg" alt="SteamTLDR" width="264" height="64" /></a>
     {DevRefresh && <div class="nav-pill dev-dock"><DevRefresh appid={gameId} /></div>}
   </div>
-  <nav class="nav-pill site-links" aria-label="Pages">
-    {PAGES.map(([href, label, Icon]) => (
-      <a href={href} aria-current={isCurrent(here, href) ? "page" : undefined}><Icon aria-hidden="true" /><span>{label}</span></a>
-    ))}
-  </nav>
-  <div class="site-end">
-    <div class="nav-pill site-search"><SearchPalette client:load /></div>
-    <div class="nav-pill site-social">
-      <a href="https://github.com/jntm7/steam-tldr" target="_blank" rel="noreferrer" aria-label="Source on GitHub" title="Source on GitHub"><GithubIcon aria-hidden="true" /></a>
-      <a href="https://huggingface.co/jntam/steamtldr" target="_blank" rel="noreferrer" aria-label="Model on Hugging Face" title="Model on Hugging Face"><HuggingFaceIcon aria-hidden="true" /></a>
+  <div class="nav-center">
+    <div class="nav-pill site-bar">
+      <nav class="site-links" aria-label="Pages">
+        {PAGES.map(([href, label, Icon]) => (
+          <a href={href} aria-current={isCurrent(here, href) ? "page" : undefined}><Icon aria-hidden="true" /><span>{label}</span></a>
+        ))}
+      </nav>
     </div>
+    <div class="nav-pill site-search"><SearchPalette client:load /></div>
+  </div>
+  <div class="site-end">
     <div class="nav-pill site-theme"><ThemeSwitch size={16} /></div>
   </div>
 </header>
@@ -39,12 +37,12 @@ const gameId = here.match(/^\/game\/(\d+)\/$/)?.[1];
   addEventListener("scroll", onScroll, { passive: true });
   onScroll();
 
-  // Body text in sections runs up to the right edge of the search pill: publish that width for the stylesheet
+  // Body text in sections runs up to the right edge of the nav bar: publish that width for the stylesheet
   const sizeText = () => {
-    const search = document.querySelector(".site-search");
+    const center = document.querySelector(".nav-center");
     const content = document.querySelector(".page-content");
-    if (!search || !content) return;
-    const width = search.getBoundingClientRect().right - content.getBoundingClientRect().left;
+    if (!center || !content) return;
+    const width = center.getBoundingClientRect().right - content.getBoundingClientRect().left;
     document.documentElement.style.setProperty("--text-max", `${Math.max(width, 320).toFixed(0)}px`);
   };
   sizeText();

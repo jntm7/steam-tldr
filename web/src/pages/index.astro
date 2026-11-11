@@ -4,6 +4,8 @@ import Landing from "../layouts/Landing.astro";
 import HomeSection from "../components/HomeSection.astro";
 import HeroPattern from "../components/HeroPattern.astro";
 import HeroReport from "../components/HeroReport.jsx";
+import GithubIcon from "../assets/github.svg";
+import HuggingFaceIcon from "../assets/huggingface.svg";
 import { games, settings, summaries } from "../lib/data.js";
 import { withWideBanner } from "../lib/images.js";
 import { heroCards } from "../lib/landing.js";
@@ -54,16 +56,15 @@ const surgingGames = activity
   .slice(0, ROW_GAMES);
 const popularGames = [...games].sort((a, b) => (b.summary?.total_reviews ?? 0) - (a.summary?.total_reviews ?? 0)).slice(0, ROW_GAMES);
 
-// Each section with its games at full size, and one headline figure per game
+// Each section with its games, and one headline figure per game
 const compact = new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 });
-const withBanner = (list) => Promise.all(list.map(async (item) => ({ ...item, game: await withWideBanner(item.game) })));
 const sections = [
   { id: "new", title: "New", Icon: Sparkles, caption: "Releases with the most reviews in the last 30 days",
-    items: (await withBanner(newReleases)).map(({ game, recent }) => ({ game, badge: "New", figure: compact.format(recent), unit: "reviews in 30 days" })) },
+    items: newReleases.map(({ game, recent }) => ({ game, badge: "New", figure: compact.format(recent), unit: "Reviews Past 30D" })) },
   { id: "trending", title: "Trending", Icon: TrendingUp, caption: "Games getting more reviews than in their usual month",
-    items: (await withBanner(surgingGames)).map(({ game, surge }) => ({ game, figure: `${surge.toFixed(1)}×`, unit: "usual reviews" })) },
+    items: surgingGames.map(({ game, surge }) => ({ game, figure: `${surge.toFixed(1)}×`, unit: "usual reviews" })) },
   { id: "popular", title: "Popular", Icon: Flame, caption: "The most reviewed games on Steam in our library",
-    items: (await withBanner(popularGames.map((game) => ({ game })))).map(({ game }) => ({ game, figure: compact.format(game.summary.total_reviews), unit: "reviews" })) },
+    items: popularGames.map((game) => ({ game, figure: compact.format(game.summary.total_reviews), unit: "reviews" })) },
 ];
 
 // Headline numbers shown under the hero buttons as (label, value)
@@ -96,6 +97,8 @@ const cards = await Promise.all(heroCards(games, summaries).map(async (card) => 
         <div class="buttons">
           <a class="button primary" href="/games/"><Gamepad2 />Browse games</a>
           <a class="button secondary" href="/faq/"><CircleHelp />FAQ</a>
+          <a class="button secondary icon" href="https://github.com/jntm7/steam-tldr" target="_blank" rel="noreferrer" aria-label="Source on GitHub" title="Source on GitHub"><GithubIcon aria-hidden="true" /></a>
+          <a class="button secondary icon" href="https://huggingface.co/jntam/steamtldr" target="_blank" rel="noreferrer" aria-label="Model on Hugging Face" title="Model on Hugging Face"><HuggingFaceIcon aria-hidden="true" /></a>
         </div>
         <dl class="hero-stats">
           {stats.map(([label, value, kind]) => (

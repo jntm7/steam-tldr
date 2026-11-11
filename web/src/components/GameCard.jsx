@@ -1,18 +1,18 @@
 import { formatCount, gameHref, gameName, scoreColor, steamPct } from "../lib/games.js";
 
-// Cover art: the portrait library image, else the banner on a blurred backdrop, with an optional corner badge
-function Cover({ game, name, badge, eager, children }) {
-  const loading = eager ? "eager" : "lazy";
+// Cover art: the portrait library image, else the banner on a blurred backdrop, with an optional corner badge.
+// Art starts lazy; useFoldAwareImages in Library switches the ones above the fold to eager
+function Cover({ game, name, badge, children }) {
   const label = <>{badge && <span className="game-badge">{badge}</span>}{children}</>;
   if (game.library_image) {
-    return <div className="game-cover"><img src={game.cover ?? game.library_image} alt={name} width="240" height="360" loading={loading} decoding="async" />{label}</div>;
+    return <div className="game-cover"><img src={game.cover ?? game.library_image} alt={name} width="240" height="360" loading="lazy" decoding="async" />{label}</div>;
   }
   if (game.header_image) {
     const banner = game.banner ?? game.header_image;
     return (
       <div className="game-cover">
-        <img className="backdrop" src={banner} alt="" width="240" height="112" loading={loading} decoding="async" />
-        <img className="front" src={banner} alt={name} width="240" height="112" loading={loading} decoding="async" />
+        <img className="backdrop" src={banner} alt="" width="240" height="112" loading="lazy" decoding="async" />
+        <img className="front" src={banner} alt={name} width="240" height="112" loading="lazy" decoding="async" />
         {label}
       </div>
     );
@@ -36,22 +36,22 @@ function CoverDetails({ game, pct }) {
 }
 
 // One library card with cover art, name, Steam score and a note, the review count unless given;
-// compact cards move the score onto the cover and keep only the name below; eager cards load their art at once (for ones above the fold)
-export default function GameCard({ game, note, badge, compact = false, eager = false }) {
+// compact cards move the score onto the cover and keep only the name below
+export default function GameCard({ game, note, badge, compact = false }) {
   const name = gameName(game);
   const pct = steamPct(game);
   if (compact) {
     const title = pct === null ? name : `${name}: ${pct.toFixed(0)}% ${game.summary.review_score_desc}, ${formatCount(game.summary.total_reviews)} reviews`;
     return (
       <a className="game-card compact" href={gameHref(game.appid)} title={title}>
-        <Cover game={game} name={name} eager={eager}><CoverDetails game={game} pct={pct} /></Cover>
+        <Cover game={game} name={name}><CoverDetails game={game} pct={pct} /></Cover>
         <div className="game-label"><span>{name}</span></div>
       </a>
     );
   }
   return (
     <a className="game-card" href={gameHref(game.appid)}>
-      <Cover game={game} name={name} badge={badge} eager={eager} />
+      <Cover game={game} name={name} badge={badge} />
       <div className="game-name">{name}</div>
       {pct === null ? (
         <div className="game-score">No reviews yet</div>

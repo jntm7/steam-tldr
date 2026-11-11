@@ -47,6 +47,18 @@ export function formatDate(text) {
   return text || "Unknown";
 }
 
+// A date as a UTC timestamp for sorting, from Steam's day-first, month-first or ISO strings; 0 when unknown
+export function dateValue(text) {
+  const dayFirst = text?.match(/^(\d{1,2}) ([A-Za-z]{3})[a-z]*,? (\d{4})$/);
+  const monthFirst = text?.match(/^([A-Za-z]{3})[a-z]*\.? (\d{1,2}),? (\d{4})$/);
+  const iso = text?.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  const [year, month, day] = dayFirst ? [dayFirst[3], dayFirst[2], dayFirst[1]]
+    : monthFirst ? [monthFirst[3], monthFirst[1], monthFirst[2]]
+    : iso ? [iso[1], MONTHS[Number(iso[2]) - 1], iso[3]] : [];
+  const monthIndex = MONTHS.indexOf(month);
+  return monthIndex === -1 || !day ? 0 : Date.UTC(Number(year), monthIndex, Number(day));
+}
+
 // A table saved as {columns, data} turned into one object per row
 export const tableRows = (table) =>
   (table?.data ?? []).map((row) => Object.fromEntries(table.columns.map((column, i) => [column, row[i]])));

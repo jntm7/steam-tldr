@@ -3,6 +3,7 @@ import { ChartLine, Gamepad2, LayoutDashboard, Lightbulb, List, TrendingDown, Tr
 import Page from "../layouts/Page.astro";
 import EventList from "../components/EventList.jsx";
 import EventTimeline from "../components/EventTimeline.jsx";
+import Equation from "../components/Equation.astro";
 import { games, settings } from "../lib/data.js";
 import { flaggedEvents } from "../lib/events.js";
 import { COMPLAINT_COLOR, PRAISE_COLOR, formatCount } from "../lib/games.js";
@@ -75,29 +76,31 @@ const dots = [
 
   <section class="panel" id="how-its-detected" data-reveal>
     <h2><Lightbulb color={PRAISE_COLOR} />Detection</h2>
-    <p class="caption">The rules behind the flags, and what to keep in mind when reading them</p>
-    <ul>
-      <li>
-        A <strong>negative surge</strong> (often called a review bomb) is a month where negative reviews are at least <strong>{s.surge_negative_ratio}× the usual</strong> and at least <strong>{s.surge_extra_negatives} more than usual</strong>, with a score at least <strong>{s.surge_score_drop} points below the usual</strong>. Usual means the median of the previous {s.flag_lookback_months} months.
-      </li>
-      <li>
-        A <strong>score drop</strong> is a month at least <strong>{s.drop_score_points} points below the usual</strong> with {formatCount(s.drop_min_reviews)} or more reviews but without that surge of negatives: a slide in opinion, or a controversy that didn't bring a flood.
-      </li>
-      <li>A game needs at least 3 earlier months to be judged, so launch months are never flagged.</li>
-      <li>Runs of consecutive flagged months are shown as one event. The last {s.recent_days} days are checked the same way, so a flag there can still be unfolding.</li>
-      <li>Review counts and scores are Steam's exact totals for each month, not samples.</li>
-    </ul>
-    <p><strong>What a flag can and can't tell you</strong></p>
-    <ul>
-      <li>
-        It tells you something happened: a controversy, a bad update, a launch problem, a change in how the game is sold.
-        Helldivers 2's May 2024 flag, for example, is the PlayStation Network sign-in requirement.
-      </li>
-      <li>
-        It can't tell whether the reviews are off-topic or deserved. Steam's own off-topic filter didn't change the totals even for that Helldivers 2 episode,
-        so flags are found from review counts and scores alone.
-      </li>
-      <li>A steady game with many reviews can still be flagged when a real problem lands. Check the game's page for what players were saying at the time.</li>
-    </ul>
+    <p class="caption">Each month is compared with the game's usual: the median of its previous {s.flag_lookback_months} months</p>
+    <Equation
+      label="Negative surge"
+      terms={[
+        [`${s.surge_negative_ratio}×`, "usual negative reviews, at least"],
+        [`${s.surge_extra_negatives}+`, "more negative reviews than usual"],
+        [`${s.surge_score_drop} pts`, "below the usual score, at least"],
+      ]}
+      note="Often called a review bomb."
+    />
+    <Equation
+      label="Score drop"
+      terms={[
+        [`${formatCount(s.drop_min_reviews)}+`, "reviews that month"],
+        [`${s.drop_score_points} pts`, "below the usual score, at least"],
+      ]}
+      note="A slide in opinion without a flood of negatives."
+    />
+    <p>
+      Launch months are never flagged, since a game needs 3 earlier months to compare with. Consecutive flagged months count as one event,
+      and counts are Steam's exact monthly totals, not samples.
+    </p>
+    <p>
+      A flag says something happened (Helldivers 2's May 2024 flag is the PlayStation Network sign-in requirement), not whether the reviews were fair.
+      Check the game's page for what players were saying at the time.
+    </p>
   </section>
 </Page>

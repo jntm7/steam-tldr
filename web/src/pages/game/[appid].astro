@@ -1,7 +1,7 @@
 ---
 import {
-  ArrowLeft, ChartLine, CircleCheck, Clock, MessageSquareQuote, ExternalLink, Hourglass, OctagonX, RefreshCw,
-  ThumbsDown, ThumbsUp, TrendingDown, TriangleAlert,
+  ArrowLeft, ChartLine, CircleCheck, Clock, MessageSquareQuote, Hourglass, Monitor, OctagonX, RefreshCw,
+  Store, Tag, ThumbsDown, ThumbsUp, TrendingDown, TriangleAlert,
 } from "lucide-react";
 import { Image } from "astro:assets";
 import Page from "../../layouts/Page.astro";
@@ -69,8 +69,10 @@ const dots = [
   <Fragment slot="heading">{name}</Fragment>
   <div slot="header-wide">
     <div class="badge-row" data-appid={game.appid}>
-      <a class="chip chip-link" href={`https://store.steampowered.com/app/${game.appid}/`} target="_blank" rel="noreferrer"><ExternalLink />Steam store page</a>
-      <span class="chip" title="When this game's reviews were last fetched"><RefreshCw />Review data last updated on {formatDate(game.fetched_at)}</span>
+      <a class="chip" href={`https://store.steampowered.com/app/${game.appid}/`} target="_blank" rel="noreferrer"><Store />Steam Store</a>
+      <a class="chip" href={`https://isthereanydeal.com/steam/app/${game.appid}/`} target="_blank" rel="noreferrer"><Tag />Price History</a>
+      <a class="chip" href={`https://www.protondb.com/app/${game.appid}`} target="_blank" rel="noreferrer"><Monitor />ProtonDB</a>
+      <span class="chip chip-muted" title="When this game's reviews were last fetched"><RefreshCw />Review data last updated on {formatDate(game.fetched_at)}</span>
     </div>
     <div class="hero-sheet">
       <GameStats game={game} months={months} change={change} />

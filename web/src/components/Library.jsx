@@ -1,7 +1,8 @@
 import { useRef, useState } from "react";
 import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, LayoutGrid, List, Search, X } from "lucide-react";
 import GameCard from "./GameCard.jsx";
-import { formatCount, gameHref, gameName, scoreColor, steamPct } from "../lib/games.js";
+import { useFoldAwareImages } from "../lib/useFoldAwareImages.js";
+import { dateValue, formatCount, gameHref, gameName, scoreColor, steamPct } from "../lib/games.js";
 
 // Sort orders as label -> [key, highest first], applied after sorting by name
 const SORTS = {
@@ -11,6 +12,8 @@ const SORTS = {
   "Rating (Low → High)": [(game) => steamPct(game) ?? -1, false],
   "Reviews (High → Low)": [(game) => game.summary?.total_reviews ?? 0, true],
   "Reviews (Low → High)": [(game) => game.summary?.total_reviews ?? 0, false],
+  "Release date (New → Old)": [(game) => dateValue(game.release_date), true],
+  "Release date (Old → New)": [(game) => dateValue(game.release_date), false],
 };
 
 // Score filters as label -> which Steam percent passes, in Steam's colour bands
@@ -32,12 +35,8 @@ const COLUMNS = [
   ["Genres", null, null],
 ];
 
-// Games per page, 5 rows of 10 cards; the first 3 rows of art (what a tall window shows) load at once, the rest when scrolled near
+// Games per page, 5 rows of 10 cards
 const PAGE_SIZE = 50;
-const EAGER_GAMES = 30;
-
-// Table rows are short, so only the first dozen are on screen at first; the rest load when scrolled near
-const EAGER_ROWS = 12;
 
 // Genres need this many games to get an entry in the genre menu, which hides one-off software categories
 const MIN_GENRE_GAMES = 2;
@@ -93,13 +92,13 @@ function GameTable({ games, sort, setSort }) {
         </tr>
       </thead>
       <tbody>
-        {games.map((game, index) => {
+        {games.map((game) => {
           const pct = steamPct(game);
           return (
             <tr key={game.appid}>
               <td className="col-game">
                 <div className="game-cell">
-                  {game.header_image ? <img src={game.thumb ?? game.header_image} alt="" width="220" height="103" loading={index < EAGER_ROWS ? "eager" : "lazy"} decoding="async" /> : <div className="row-empty" />}
+                  {game.header_image ? <img src={game.thumb ?? game.header_image} alt="" width="220" height="103" loading="lazy" decoding="async" /> : <div className="row-empty" />}
                   <span className="row-name"><a href={gameHref(game.appid)}>{gameName(game)}</a><small>{(game.developers ?? []).join(", ")}</small></span>
                 </div>
               </td>
@@ -130,6 +129,7 @@ export default function Library({ games }) {
   const [view, setView] = useState("Cards");
   const [paging, setPaging] = useState({ page: 1, key: "" });
   const results = useRef(null);
+  useFoldAwareImages(results);
 
   const [key, highestFirst] = SORTS[sort];
   const sorted = [...games]
@@ -219,7 +219,7 @@ export default function Library({ games }) {
             {view === "List" ? (
               <GameTable games={visible} sort={sort} setSort={setSort} />
             ) : (
-              <div className="library">{visible.map((game, index) => <GameCard key={game.appid} game={game} compact eager={index < EAGER_GAMES} />)}</div>
+              <div className="library">{visible.map((game) => <GameCard key={game.appid} game={game} compact />)}</div>
             )}
           </div>
           {pageCount > 1 && <Pagination page={page} count={pageCount} onChange={goToPage} className="bottom" />}

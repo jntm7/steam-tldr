@@ -2,15 +2,18 @@
 import Page from "../layouts/Page.astro";
 import Library from "../components/Library.jsx";
 import RecentGames from "../components/RecentGames.jsx";
-import { games } from "../lib/data.js";
+import { games, summaries } from "../lib/data.js";
 import { withImages } from "../lib/images.js";
 import { gameName } from "../lib/games.js";
 
 // Game names by app ID for the recently viewed list
 const names = Object.fromEntries(games.map((game) => [game.appid, gameName(game)]));
 
-// Games with small copies of their art
-const withArt = await Promise.all(games.map(withImages));
+// The library index omits release dates, which live in each game's summary file
+const releaseDates = Object.fromEntries(summaries.map((summary) => [summary.appid, summary.release_date]));
+
+// Games with small copies of their art and their release date
+const withArt = await Promise.all(games.map(async (game) => ({ ...(await withImages(game)), release_date: releaseDates[game.appid] ?? null })));
 ---
 
 <Page title="Games" kicker="Library"
