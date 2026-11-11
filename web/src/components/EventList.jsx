@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { useFoldAwareImages } from "../lib/useFoldAwareImages.js";
 import { COMPLAINT_COLOR, MIXED_COLOR, formatCount, gameHref } from "../lib/games.js";
 
 // Colour of each kind of event, shared with the timeline
@@ -13,15 +14,14 @@ const SORTS = {
   "Newest": (event) => event.start,
 };
 
-// Events shown before the "Show all" button, and how many rows load their banner at once
+// Events shown before the "Show all" button
 const FIRST_SHOWN = 20;
-const EAGER_ROWS = 6;
 
 // One event as a row: banner, game, kind and when, size, score against the usual, and the fall in points
-function EventRow({ event, index }) {
+function EventRow({ event }) {
   return (
     <a className="event-row" href={gameHref(event.appid)}>
-      {event.thumb ? <img src={event.thumb} alt="" width="220" height="103" loading={index < EAGER_ROWS ? "eager" : "lazy"} decoding="async" /> : <div className="row-empty" />}
+      {event.thumb ? <img src={event.thumb} alt="" width="220" height="103" loading="lazy" decoding="async" /> : <div className="row-empty" />}
       <span className="row-name">{event.game}<small>{event.kind} · {event.when} · {formatCount(event.reviews)} reviews</small></span>
       <span className="event-extra">{event.kind === "Negative surge" ? `+${formatCount(event.extraNegatives)} extra negatives` : ""}</span>
       <span className="event-score">{event.pct.toFixed(0)}% vs usual {event.usualPct.toFixed(0)}%</span>
@@ -35,6 +35,8 @@ export default function EventList({ events }) {
   const [kind, setKind] = useState("All");
   const [sort, setSort] = useState("Most extra negatives");
   const [all, setAll] = useState(false);
+  const listRef = useRef(null);
+  useFoldAwareImages(listRef);
 
   const rank = SORTS[sort];
   const shown = events.filter((event) => !KINDS[kind] || event.kind === KINDS[kind]).sort((a, b) => rank(b) - rank(a));
@@ -56,7 +58,7 @@ export default function EventList({ events }) {
         </label>
       </div>
       <p className="caption">{shown.length} {shown.length === 1 ? "event" : "events"}</p>
-      <div className="event-list">{visible.map((event, index) => <EventRow key={`${event.appid}-${event.start}`} event={event} index={index} />)}</div>
+      <div className="event-list" ref={listRef}>{visible.map((event) => <EventRow key={`${event.appid}-${event.start}`} event={event} />)}</div>
       {!all && shown.length > FIRST_SHOWN && (
         <button className="button small show-all" onClick={() => setAll(true)}>Show all {shown.length} events</button>
       )}

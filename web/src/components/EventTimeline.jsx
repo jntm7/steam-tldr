@@ -2,6 +2,7 @@ import { CartesianGrid, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAx
 import { KIND_COLORS } from "./EventList.jsx";
 import { formatCount } from "../lib/games.js";
 import { useSectionReveal } from "../lib/useSectionReveal.js";
+import { useCleanChartTabindex } from "../lib/useCleanChartTabindex.js";
 
 // Hover card: the game, kind, when, size and score against the usual
 function EventTooltip({ active, payload }) {
@@ -21,6 +22,7 @@ function EventTooltip({ active, payload }) {
 // Bubble chart of every event: when it happened, how far the score fell, sized by reviews and coloured by kind
 export default function EventTimeline({ events }) {
   const { ref, go, animate } = useSectionReveal();
+  useCleanChartTabindex(ref);
   const years = events.map((event) => new Date(event.start).getUTCFullYear());
   const first = Math.min(...years);
   const last = Math.max(...years) + 1;
@@ -35,7 +37,7 @@ export default function EventTimeline({ events }) {
       </div>
       {!go ? <div style={{ height: 320 }} /> : (
       <ResponsiveContainer width="100%" height={320}>
-        <ScatterChart margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
+        <ScatterChart accessibilityLayer={false} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
           <CartesianGrid vertical={false} />
           <XAxis type="number" dataKey="start" domain={[ticks[0], ticks.at(-1)]} ticks={ticks} tickLine={false} axisLine={false}
                  tickFormatter={(time) => new Date(time).getUTCFullYear()} />

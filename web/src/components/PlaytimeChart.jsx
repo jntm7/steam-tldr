@@ -1,6 +1,7 @@
 import { Bar, BarChart, CartesianGrid, LabelList, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { CHART_COLOR, formatCount } from "../lib/games.js";
 import { useSectionReveal } from "../lib/useSectionReveal.js";
+import { useCleanChartTabindex } from "../lib/useCleanChartTabindex.js";
 
 // Playtime groups as shown on the chart
 const LABELS = { "<2h": "Under 2 hours", "2-10h": "2 to 10 hours", "10-50h": "10 to 50 hours", "50h+": "50+ hours" };
@@ -32,11 +33,12 @@ function PlaytimeTooltip({ active, payload }) {
 // Percent positive by playtime group, labelled at each bar's top
 export default function PlaytimeChart({ groups }) {
   const { ref, go, animate } = useSectionReveal();
+  useCleanChartTabindex(ref);
   return (
     <div className="chart" ref={ref}>
       {!go ? <div style={{ height: 300 }} /> : (
       <ResponsiveContainer width="100%" height={300}>
-        <BarChart data={groups} margin={{ top: 24, right: 8, bottom: 0, left: 0 }}>
+        <BarChart accessibilityLayer={false} data={groups} margin={{ top: 24, right: 8, bottom: 0, left: 0 }}>
           <CartesianGrid vertical={false} />
           <XAxis dataKey="group" tickLine={false} axisLine={false} height={48} interval={0} tick={<GroupTick groups={groups} />} />
           <YAxis domain={[0, 100]} ticks={[0, 25, 50, 75, 100]} tickFormatter={(value) => `${value}%`} width={52} tickLine={false} axisLine={false} />

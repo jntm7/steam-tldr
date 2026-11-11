@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Bar, BarChart, CartesianGrid, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { CHART_COLOR, COMPLAINT_COLOR, formatCount, monthName } from "../lib/games.js";
 import { useSectionReveal } from "../lib/useSectionReveal.js";
+import { useCleanChartTabindex } from "../lib/useCleanChartTabindex.js";
 
 // Range choices as label -> points shown (the last point is the last 30 days)
 const RANGES = { "All time": null, "Last 2 years": 25, "Last 12 months": 13 };
@@ -36,6 +37,7 @@ function FlagDot({ cx, cy, payload }) {
 export default function TrendCharts({ points, overall }) {
   const [range, setRange] = useState("All time");
   const { ref, go, animate } = useSectionReveal();
+  useCleanChartTabindex(ref);
   const shown = RANGES[range] ? points.slice(-RANGES[range]) : points;
 
   const step = tickStep(shown.length);
@@ -64,7 +66,7 @@ export default function TrendCharts({ points, overall }) {
       {!go ? <div style={{ height: 420 }} /> : (
       <>
       <ResponsiveContainer width="100%" height={280}>
-        <LineChart data={shown} syncId="trend" margin={margin}>
+        <LineChart accessibilityLayer={false} data={shown} syncId="trend" margin={margin}>
           <CartesianGrid vertical={false} />
           <XAxis {...xAxis} />
           <YAxis domain={[0, 100]} ticks={[0, 25, 50, 75, 100]} tickFormatter={(value) => `${value}%`} width={52} tickLine={false} axisLine={false} />
@@ -75,7 +77,7 @@ export default function TrendCharts({ points, overall }) {
       </ResponsiveContainer>
 
       <ResponsiveContainer width="100%" height={130}>
-        <BarChart data={shown} syncId="trend" margin={margin}>
+        <BarChart accessibilityLayer={false} data={shown} syncId="trend" margin={margin}>
           <CartesianGrid vertical={false} />
           <XAxis {...xAxis} />
           <YAxis tickFormatter={(value) => compact.format(value)} width={52} tickLine={false} axisLine={false} />
