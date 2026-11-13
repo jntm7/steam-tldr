@@ -156,8 +156,9 @@ def check_sentences(sentences, part: str, count: int, facts: dict, quotes: dict,
     for sentence in sentences:
         text = sentence.get("text", "") if isinstance(sentence, dict) else ""
         cites = sentence.get("cites", []) if isinstance(sentence, dict) else []
-        unknown = [cite for cite in cites if cite not in facts and cite not in quotes]
-        if not text or not cites or unknown:
+        cites = cites if isinstance(cites, list) else [cites]
+        unknown = [cite for cite in cites if not isinstance(cite, str) or (cite not in facts and cite not in quotes)]
+        if not isinstance(text, str) or not text or not cites or unknown:
             errors.append(f'Sentence "{text}" must cite existing F or Q lines (unknown: {unknown})')
             continue
         cited = " ".join([name] + [facts.get(cite) or quotes[cite] for cite in cites])
@@ -272,8 +273,11 @@ def main() -> None:
         unreachable = 0
         if summary is None:
             failed += 1
-            data.pop(WRITTEN_FIELD, None)
-            print(f"[{i}/{len(paths)}] {data['name']}: failed the checks {ATTEMPTS} times, left without a summary\n  - " + "\n  - ".join(errors))
+            still_current = current and current.get("input_hash") == input_hash(data)
+            if not still_current:
+                data.pop(WRITTEN_FIELD, None)
+            outcome = "kept the old summary" if still_current else "left without a summary"
+            print(f"[{i}/{len(paths)}] {data['name']}: failed the checks {ATTEMPTS} times, {outcome}\n  - " + "\n  - ".join(errors))
         else:
             written += 1
             data[WRITTEN_FIELD] = summary
