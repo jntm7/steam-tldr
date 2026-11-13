@@ -1,36 +1,33 @@
 ---
+import { ArrowDownRight, ArrowRight, ArrowUpRight } from "lucide-react";
 import { capitalize, themeIcon } from "../lib/themes.js";
 import { complaintChange } from "../lib/complaints.js";
 
-// Recent complaint themes: share now against the all-time share, a change pill beside the percentages and a few quotes
+// Recent complaint themes: a change pill with an arrow for the direction, a few quotes, and a small horizontal bar chart of the two shares with the numbers above it
 const { rows, color } = Astro.props;
 const scale = Math.max(...rows.flatMap((row) => [row.pct, row.all_time_pct]), 1);
+const ARROWS = { rising: ArrowUpRight, new: ArrowUpRight, fading: ArrowDownRight, steady: ArrowRight };
 ---
 
 {rows.length === 0 ? (
   <p class="caption">No notable complaints in the last 30 days.</p>
 ) : (
   <Fragment>
-    <div class="complaint-legend" aria-hidden="true">
-      <span><i class="key now" style={`background: ${color}`}></i>Last 30 days</span>
-      <span><i class="key usual"></i>All time</span>
-    </div>
     <div class="theme-list" style={`--theme-color: ${color}`}>
       {rows.map((row) => {
         const Icon = themeIcon(row.theme);
         const change = complaintChange(row);
+        const Arrow = ARROWS[change.status];
         const [first, ...more] = row.examples ?? [];
         return (
-          <div class="theme-row">
+          <div class={`theme-row recent-row ${change.status}`}>
+            <div class="recent-main">
             <div class="theme-head">
               <Icon />{capitalize(row.theme)}
               <span class="theme-pct">
-                <span class={`change-badge ${change.status}`}>{change.label}</span>
-                {Math.round(row.pct)}% <span class="theme-usual">vs {Math.round(row.all_time_pct)}%</span>
+                <span class={`change-badge ${change.status}`}><Arrow aria-hidden="true" />{change.label}</span>
               </span>
             </div>
-            <div class="theme-track"><div class="theme-bar" style={`width: ${(100 * row.pct) / scale}%`} /></div>
-            <div class="theme-track usual"><div class="theme-bar" style={`width: ${(100 * row.all_time_pct) / scale}%`} /></div>
             {first && <div class="theme-quote">“{first}”</div>}
             {more.length > 0 && (
               <details class="more-quotes">
@@ -38,6 +35,12 @@ const scale = Math.max(...rows.flatMap((row) => [row.pct, row.all_time_pct]), 1)
                 {more.map((quote) => <div class="theme-quote">“{quote}”</div>)}
               </details>
             )}
+            </div>
+            <div class="recent-chart" role="img" aria-label={`${Math.round(row.all_time_pct)}% all time, ${Math.round(row.pct)}% in the last 30 days: ${change.label.toLowerCase()}`}>
+              <div class="recent-stats"><span class="theme-usual">{Math.round(row.all_time_pct)}%</span> <span class="recent-stats-arrow" aria-label="to">→</span> {Math.round(row.pct)}%</div>
+              <div class="recent-bar"><span class="recent-bar-label">All</span><span class="recent-bar-track"><span class="recent-col usual" style={`width: ${(100 * row.all_time_pct) / scale}%`} /></span></div>
+              <div class="recent-bar"><span class="recent-bar-label">30d</span><span class="recent-bar-track"><span class="recent-col now" style={`width: ${(100 * row.pct) / scale}%`} /></span></div>
+            </div>
           </div>
         );
       })}

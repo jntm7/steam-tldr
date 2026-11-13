@@ -68,7 +68,7 @@ const dots = [
 
       <section class="panel" id="when-they-happened" data-reveal>
         <h2><ChartLine color={COMPLAINT_COLOR} />Timeline</h2>
-        <p class="caption">Each dot is an event. Higher means a bigger fall in score, and bigger means more reviews.</p>
+        <p class="caption">Every flagged event across all games, by when it started and how far the score fell</p>
         <EventTimeline events={events} client:visible />
       </section>
     </>
@@ -84,7 +84,6 @@ const dots = [
         [`${s.surge_extra_negatives}+`, "more negative reviews than usual"],
         [`${s.surge_score_drop} pts`, "below the usual score, at least"],
       ]}
-      note="Often called a review bomb."
     />
     <Equation
       label="Score drop"
@@ -92,15 +91,10 @@ const dots = [
         [`${formatCount(s.drop_min_reviews)}+`, "reviews that month"],
         [`${s.drop_score_points} pts`, "below the usual score, at least"],
       ]}
-      note="A slide in opinion without a flood of negatives."
     />
     <p>
       Launch months are never flagged, since a game needs 3 earlier months to compare with. Consecutive flagged months count as one event,
       and counts are Steam's exact monthly totals, not samples.
-    </p>
-    <p>
-      A flag says something happened (Helldivers 2's May 2024 flag is the PlayStation Network sign-in requirement), not whether the reviews were fair.
-      Check the game's page for what players were saying at the time.
     </p>
   </section>
 </Page>

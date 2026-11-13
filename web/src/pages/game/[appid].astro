@@ -9,13 +9,15 @@ import ThemeList from "../../components/ThemeList.astro";
 import GameStats from "../../components/GameStats.astro";
 import GameFacts from "../../components/GameFacts.astro";
 import WrittenSummary from "../../components/WrittenSummary.astro";
+import GameEvents from "../../components/GameEvents.astro";
 import RecentComplaints from "../../components/RecentComplaints.astro";
 import PlaytimeComplaints from "../../components/PlaytimeComplaints.astro";
 import TrendCharts from "../../components/TrendCharts.jsx";
 import PlaytimeChart from "../../components/PlaytimeChart.jsx";
 import ReviewRandomizer from "../../components/ReviewRandomizer.jsx";
 import { summaries } from "../../lib/data.js";
-import { COMPLAINT_COLOR, MONTHS, PRAISE_COLOR, formatCount, formatDate, gameName, monthName, tableRows } from "../../lib/games.js";
+import { gameEvents } from "../../lib/events.js";
+import { COMPLAINT_COLOR, MONTHS, PRAISE_COLOR, formatDate, gameName, tableRows } from "../../lib/games.js";
 
 // One page per exported game
 export function getStaticPaths() {
@@ -45,10 +47,12 @@ const recentComplaints = tableRows(game.recent_complaints);
 const hasRecent = game.recent_complaints !== null;
 const playtimeComplaints = tableRows(game.playtime_complaints);
 const playtime = tableRows(game.playtime).filter((row) => row.pct_positive !== null);
-const events = tableRows(game.events);
+
+// Flagged events, newest first, with their explanations
+const episodes = gameEvents(game).reverse();
 
 // Chart points: each month's score and volume, with its flag if any
-const flags = Object.fromEntries(events.map((event) => [event.label, event.kind]));
+const flags = Object.fromEntries(tableRows(game.events).map((event) => [event.label, event.kind]));
 const points = months
   .filter((month) => month.pct_positive !== null)
   .map((month) => ({ label: month.label, pct: month.pct_positive, reviews: month.reviews, flag: flags[month.label] ?? null }));
@@ -59,6 +63,7 @@ const dots = [
   ["praise", "Praise"],
   ["complaints", "Complaints"],
   ["opinions-over-time", "Trends"],
+  episodes.length > 0 && ["flagged-events", "Events"],
   hasRecent && ["recent-complaints", "Recent"],
   ["playtime", "Playtime"],
   ["review-randomizer", "Reviews"],
@@ -110,24 +115,17 @@ const dots = [
       Percent positive each month, with the number of reviews below. The dashed line is the all-time score, and the last point covers the last 30 days.
     </p>
     <TrendCharts points={points} overall={game.pct_positive} client:visible />
-    {events.length > 0 && (
-      <div class="alert warning">
-        <TriangleAlert />
-        <div>
-          <strong>Flagged events</strong> (red dots): months with a surge of negative reviews or a sharp drop in score.
-          <ul>
-            {events.map((event) => (
-              <li>
-                <strong>{monthName(event.label)}</strong> ({event.kind.toLowerCase()}): {`${formatCount(event.reviews)} reviews, `}
-                {`${Math.round(event.pct_positive)}% positive vs a usual ${Math.round(event.usual_pct)}%`}
-                {event.kind === "Negative surge" && `, ${formatCount(Math.round(event.extra_negatives))} more negative reviews than usual`}
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-    )}
   </section>
+
+  {episodes.length > 0 && (
+    <section class="panel" id="flagged-events" data-reveal>
+      <h2><TriangleAlert color={COMPLAINT_COLOR} />Events</h2>
+      <p class="caption caption-wide">
+        Times when far more negative reviews than usual came in, or the monthly score fell well below its usual level.
+      </p>
+      <GameEvents episodes={episodes} />
+    </section>
+  )}
 
   {hasRecent && (
     <section class="panel" id="recent-complaints" data-reveal>
@@ -145,7 +143,6 @@ const dots = [
     ) : (
       <Fragment>
         <PlaytimeChart groups={playtime} client:visible />
-        <p class="caption">A low score under 2 hours often means a rough first impression, a bad launch, or performance problems.</p>
         <PlaytimeComplaints rows={playtimeComplaints} color={COMPLAINT_COLOR} />
       </Fragment>
     )}

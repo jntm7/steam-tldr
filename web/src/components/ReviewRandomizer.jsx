@@ -62,7 +62,7 @@ export default function ReviewRandomizer({ reviews }) {
 
   return (
     <div>
-      <div className="review-toolbar">
+      <div className="review-toolbar chart-toolbar">
         <div className="segmented" role="group" aria-label="Kind of review">
           {Object.keys(KINDS).map((label) => (
             <button key={label} className={kind === label ? "on" : ""} aria-pressed={kind === label} onClick={() => setKind(label)}>{label}</button>

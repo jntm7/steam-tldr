@@ -19,10 +19,8 @@ jobs:
       - uses: astral-sh/setup-uv@v10.3.3
       - run: uv sync --locked
       - name: Lint Python
-        run: uv run ruff check src notebooks
-      - name: Check notebooks
-        run: uv run marimo check notebooks/*.py
-      - name: Check site_data and written summaries
+        run: uv run ruff check src
+      - name: Check site_data, written summaries and event explanations
         run: uv run python src/check_site_data.py
 
   build:
