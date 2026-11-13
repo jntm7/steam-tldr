@@ -14,15 +14,15 @@
 
 </div>
 
+![SteamTLDR Home](https://github.com/user-attachments/assets/b3d54cfa-d795-4e78-b534-97bd4389d565)
+
 SteamTLDR is a personal project built to get hands-on practice with machine learning and sentiment analysis.
 
 > Portions of the project contain AI-assisted code. It is a learning exercise rather than a complete product.
 
-![SteamTLDR Home](https://github.com/user-attachments/assets/b3d54cfa-d795-4e78-b534-97bd4389d565)
-
 ## Features
 
-![SteamTLDR Helldivers 2](https://github.com/user-attachments/assets/c0454358-374b-4214-bd21-ed1473c52f64)
+![SteamTLDR Game Page](https://github.com/user-attachments/assets/1cd736ae-53f6-4ae7-a047-a61471d2ad5a)
 
 ### Steam statistics
 
@@ -48,15 +48,19 @@ View what players have been unhappy about in the last 30 days, to spot new probl
 
 Monthly percent positive and review counts for a game's whole history.
 
-![SteamTLDR Historical](https://github.com/user-attachments/assets/317b0ba8-05e4-44f3-a127-c7c6741f7395)
+![SteamTLDR Historical](https://github.com/user-attachments/assets/29527994-bb75-4662-ab9e-a9d0aaa2ccab)
 
-### Playtime analysis
+### Playtime breakdown
 
 See how players with under 2 hours compare with those who have played 50+ hours.
 
-### Outliers
+![SteamTLDR Playtime](https://github.com/user-attachments/assets/d1e0734f-67d7-4221-97dc-77d402483f37)
+
+### Outliers & Events
 
 Identify outliers every month across all games where negative reviews surged or the score dropped sharply, such as review bombs. Each event gets a short explanation of what its negative reviews pointed to, with reason tags (account/DRM, monetization, bugs/performance and more) you can filter by, and links to the Steam news it cited.
+
+![SteamTLDR Outliers](https://github.com/user-attachments/assets/fb1de7c8-ff8f-4135-953a-edca846c8cd8)
 
 ### Review randomizer
 
@@ -66,7 +70,7 @@ Read a random positive or negative review in full, fetched directly from Steam's
 
 SteamTLDR's dataset currently includes 200 games and training on 820,000+ reviews.
 
-![SteamTLDR Library](https://github.com/user-attachments/assets/6084533c-67cd-4df3-ac7e-99fd8a26298d)
+![SteamTLDR Library](https://github.com/user-attachments/assets/4237973f-6c76-4b8f-953f-56cb02cd7fbd)
 
 ## Methodology
 
@@ -115,6 +119,8 @@ Claude Haiku 5.5 writes each summary from the game's own numbers, and code check
 - Every number and quote must match the facts it cites.
 - The checks verify numbers and quotes, not meaning, so a sentence can still stretch a point.
 
+![SteamTLDR Summary](https://github.com/user-attachments/assets/b8f38564-ae96-4875-98b7-df30df734ffc)
+
 ### Outliers & Event Explanations
 
 Claude Haiku 5.5 explains each event in one or two sentences from that time's negative reviews and Steam news, and code checks every quote, number and tag.
@@ -125,6 +131,8 @@ Claude Haiku 5.5 explains each event in one or two sentences from that time's ne
 | Cite Steam news | 54 |
 | Tagged unclear | 7 |
 | Top tags | game changes (30), bugs/performance (29), monetization (29) |
+
+![SteamTLDR Events](https://github.com/user-attachments/assets/eb320341-5345-4430-9703-b8c7a3931da9)
 
 ## Known Limitations
 
