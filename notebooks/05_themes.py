@@ -146,7 +146,7 @@ def _(FLIP_TO_COMPLAINT, FLIP_TO_PRAISE, PROBLEM_THEMES, demo_text, demo_thumbs,
 
 
 @app.cell(hide_code=True)
-def _(mo):
+def _(FLIP_TO_COMPLAINT, FLIP_TO_PRAISE, mo):
     mo.md(rf"""
     ## 3. Deciding if a clause is praise or a complaint
 

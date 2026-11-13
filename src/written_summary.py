@@ -224,7 +224,8 @@ def write_summary(data: dict) -> tuple[dict | None, list[str]]:
         raw = complete(prompt + feedback)
         answer, errors = check_answer(raw, facts, quotes, data, must_cite)
         if not errors:
-            keep = lambda sentences: [{"text": s["text"].strip(), "cites": s["cites"]} for s in sentences]
+            def keep(sentences):
+                return [{"text": s["text"].strip(), "cites": s["cites"]} for s in sentences]
             return {
                 "tldr": keep(answer["tldr"]), "details": keep(answer["details"]), "model": model_name(),
                 "generated": date.today().isoformat(), "input_hash": input_hash(data), "prompt_version": PROMPT_VERSION,

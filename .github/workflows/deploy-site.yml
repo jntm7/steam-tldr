@@ -1,9 +1,9 @@
-name: Deploy site
+name: Check and deploy site
 
 on:
   push:
     branches: [main]
-    paths: ["web/**", "site_data/**", ".github/workflows/deploy-site.yml"]
+  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -12,7 +12,21 @@ permissions:
   id-token: write
 
 jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.3.3
+      - run: uv sync --locked
+      - name: Lint Python
+        run: uv run ruff check src notebooks
+      - name: Check notebooks
+        run: uv run marimo check notebooks/*.py
+      - name: Check site_data and written summaries
+        run: uv run python src/check_site_data.py
+
   build:
+    needs: check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -22,6 +36,7 @@ jobs:
 
   deploy:
     needs: build
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     environment:
       name: github-pages

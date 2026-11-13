@@ -119,7 +119,6 @@ def recent_complaints(df: pd.DataFrame, recent: pd.Series, model, all_time: pd.D
     if len(reviews) < MIN_RECENT_REVIEWS or not recent["reviews"]:
         return None
     themes, mentions = summarize_themes(reviews, model, recent["positive"] / recent["reviews"])
-    recent_pct = themes["complaint_pct"].reindex(all_time.index).fillna(0)
     big_recent = themes[themes["complaint_pct"] >= MIN_THEME_PCT]["complaint_pct"].nlargest(RECENT_THEMES).index
     big_all_time = all_time[all_time["complaint_pct"] >= MIN_THEME_PCT]["complaint_pct"].nlargest(RECENT_THEMES).index
     shown = pd.DataFrame({"recent": themes["complaint_pct"], "all_time": all_time["complaint_pct"]}).fillna(0).loc[big_recent.union(big_all_time)]
