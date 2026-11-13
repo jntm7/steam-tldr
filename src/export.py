@@ -8,6 +8,7 @@ from pathlib import Path
 from summarize import (DROP_MIN_REVIEWS, DROP_SCORE_POINTS, FLAG_LOOKBACK_MONTHS, SURGE_EXTRA_NEGATIVES, SURGE_NEGATIVE_RATIO,
                        SURGE_SCORE_DROP, build_summary, display_name)
 from themes import FLIP_TO_COMPLAINT, FLIP_TO_PRAISE, PROBLEM_THEMES, THEMES
+from event_reasons import REASONS_FIELD, current_reasons
 from written_summary import WRITTEN_FIELD, input_hash
 
 # Where the exported summaries live, small enough to commit or host anywhere
@@ -69,6 +70,14 @@ def keep_written_summary(data: dict, path: Path) -> dict:
         data[WRITTEN_FIELD] = old
     return data
 
+# Carry over old event explanations whose event facts have not changed
+def keep_event_reasons(data: dict, path: Path) -> dict:
+    old = json.loads(path.read_text()).get(REASONS_FIELD) if path.exists() else None
+    kept = current_reasons({**data, REASONS_FIELD: old})
+    if kept:
+        data[REASONS_FIELD] = sorted(kept.values(), key=lambda record: record["start"])
+    return data
+
 # Write one game's summary file and return its path
 def export_summary(appid: int, refresh: bool = False) -> Path | None:
     summary = build_summary(appid, refresh)
@@ -76,7 +85,7 @@ def export_summary(appid: int, refresh: bool = False) -> Path | None:
         return None
     EXPORT_DIR.mkdir(exist_ok=True)
     path = EXPORT_DIR / f"{appid}.json"
-    path.write_text(json.dumps(keep_written_summary(to_json_data(summary), path), separators=(",", ":")))
+    path.write_text(json.dumps(keep_event_reasons(keep_written_summary(to_json_data(summary), path), path), separators=(",", ":")))
     return path
 
 # Write the library index from every game already exported

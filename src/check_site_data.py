@@ -1,6 +1,7 @@
 import json
 import sys
 from pathlib import Path
+from event_reasons import PROMPT_VERSION as REASONS_VERSION, REASONS_FIELD, check_reason, event_facts, events_of, facts_hash
 from written_summary import PROMPT_VERSION, WRITTEN_FIELD, big_change_line, build_facts, check_answer, input_hash
 
 # Where the exported summaries live (same folder as export.py writes to)
@@ -33,6 +34,24 @@ def check_written(data: dict) -> list[str]:
     _, errors = check_answer(raw, facts, quotes, data, big_change_line(data, facts))
     return [f"written summary: {error}" for error in errors]
 
+# Problems with one game's event explanations, re-running the checks against the evidence lines saved with each
+def check_reasons(data: dict) -> list[str]:
+    events, problems = {event["start_label"]: event for event in events_of(data)}, []
+    for record in data[REASONS_FIELD]:
+        event = events.get(record.get("start"))
+        where = f"event {record.get('start')}"
+        if event is None:
+            problems.append(f"{where}: explained, but no flagged event starts then")
+        elif record.get("prompt_version") != REASONS_VERSION:
+            problems.append(f"{where}: explanation is on prompt version {record.get('prompt_version')}, not {REASONS_VERSION}")
+        elif record.get("input_hash") != facts_hash(event, data["name"]):
+            problems.append(f"{where}: explanation is out of date (its facts changed); run src/event_reasons.py")
+        elif any(record["lines"].get(key) != text for key, text in event_facts(event, data["name"]).items()):
+            problems.append(f"{where}: saved fact lines do not match the events table")
+        else:
+            problems += [f"{where}: {error}" for error in check_reason(record, record["lines"])]
+    return problems
+
 # Every problem in site_data/, plus games that have no written summary yet
 def check_all() -> tuple[list[str], list[str]]:
     problems, unwritten = [], []
@@ -45,10 +64,13 @@ def check_all() -> tuple[list[str], list[str]]:
     for appid, path in sorted(game_files.items()):
         data = json.loads(path.read_text())
         game_problems = check_fields(data)
-        if not game_problems and data.get(WRITTEN_FIELD):
+        fields_ok = not game_problems
+        if fields_ok and data.get(WRITTEN_FIELD):
             game_problems = check_written(data)
-        elif not game_problems:
+        elif fields_ok:
             unwritten.append(f"{appid} ({data['name']})")
+        if fields_ok and data.get(REASONS_FIELD):
+            game_problems += check_reasons(data)
         problems += [f"{appid} ({data.get('name')}): {problem}" for problem in game_problems]
     return problems, unwritten
 
