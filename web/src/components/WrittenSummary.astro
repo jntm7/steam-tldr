@@ -11,7 +11,7 @@ const join = (sentences) => sentences.map((sentence) => sentence.text).join(" ")
   <section class="tldr" data-reveal aria-label="Summary" style={`--tldr-color: ${scoreColor(pct)}`}>
     <div class="tldr-head">
       <span class="tldr-label">TL;DR</span>
-      <span class="tldr-note"><Sparkles />AI-generated summary from review data · <a href="/faq/#written-summary">Learn more here<ArrowUpRight /></a></span>
+      <span class="tldr-note"><Sparkles />Auto-generated summary from review data · <a href="/faq/#written-summary">Learn more here<ArrowUpRight /></a></span>
     </div>
     <p class="tldr-text">{join(summary.tldr)}</p>
     {summary.details?.length > 0 && (

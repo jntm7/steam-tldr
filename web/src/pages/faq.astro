@@ -152,6 +152,14 @@ const dots = [
         <EventExample appid={553850} label="2024-08" kind="drop" title="Example: Helldivers 2, Aug 2024" />
       </div>
     </div>
+    <h3 id="event-reasons">Why an event happened</h3>
+    <p>Each event gets a short reason, written by AI and checked by code, like the TL;DR.</p>
+    <ul>
+      <li>The AI reads that time's top negative reviews and the game's Steam news. Nothing else.</li>
+      <li>It reports what reviews point to, never a cause as fact, and cites what it used. Code checks every number and quote.</li>
+      <li>Tags come from a fixed list. If reviews disagree, the event is marked unclear.</li>
+      <li>The links under a reason are the news it cited.</li>
+    </ul>
   </section>
 
   <section class="panel" id="written-summary" data-reveal>
@@ -191,9 +199,9 @@ const dots = [
         <p class="caption">EA SPORTS FC 27: share of positive reviews.</p>
       </div>
       <div class="limit">
-        <h3>A flag shows what, not why</h3>
-        <p>An event says something happened that month, not the reason or whether the anger was fair.</p>
-        <div class="misread"><q>Helldivers 2, May 2024: 5.4× the usual negative reviews.</q><span class="counted">The data says: a surge</span><span class="meant">The cause (PSN account linking) you have to look up</span></div>
+        <h3>A reason is what reviews say</h3>
+        <p>An event's reason reports what angry reviews pointed to, not whether the anger was fair or the full story.</p>
+        <div class="misread"><q>Helldivers 2, May 2024: 5.4× the usual negative reviews.</q><span class="counted">Reviews point to: account/DRM</span><span class="meant">Whether it was fair: read the linked news</span></div>
       </div>
     </div>
   </section>

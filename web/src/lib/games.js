@@ -36,6 +36,13 @@ export const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "
 export const monthName = (label) =>
   /^\d{4}-\d{2}$/.test(label) ? `${MONTHS[Number(label.slice(5)) - 1]} ${label.slice(0, 4)}` : "Last 30 days";
 
+// A run of months: "Aug 2017", "Aug–Sep 2017" within one year, else "Dec 2024 to Jan 2025"
+export function monthRange(first, last) {
+  if (first === last) return monthName(first);
+  const sameYear = /^\d{4}-\d{2}$/.test(last) && first.slice(0, 4) === last.slice(0, 4);
+  return sameYear ? `${MONTHS[Number(first.slice(5)) - 1]}–${monthName(last)}` : `${monthName(first)} to ${monthName(last)}`;
+}
+
 // Steam's and our own date strings as "Aug 12, 2012", or unchanged when there's no full date such as "Coming soon"
 export function formatDate(text) {
   const dayFirst = text?.match(/^(\d{1,2}) ([A-Za-z]{3})[a-z]*,? (\d{4})$/);

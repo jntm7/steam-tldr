@@ -1,0 +1,51 @@
+---
+import { ArrowUpRight, MessageSquare, Sparkles, ThumbsDown } from "lucide-react";
+import { COMPLAINT_COLOR, MIXED_COLOR, formatCount } from "../lib/games.js";
+
+// A game's flagged events, newest first: the numbers on the left, why it happened as a quote block on the right, then its sources
+const { episodes } = Astro.props;
+const KIND_COLORS = { "Negative surge": COMPLAINT_COLOR, "Score drop": MIXED_COLOR };
+const shownTags = (record) => record.tags.map((tag) => tag.tag).filter((tag) => tag !== "unclear");
+const anyExplained = episodes.some((episode) => episode.record);
+---
+
+<div class="game-events">
+  {episodes.map((episode) => (
+    <article class="game-event" style={`--event-color: ${KIND_COLORS[episode.kind]}`}>
+      <div class="game-event-meta">
+        <span class="game-event-when">{episode.when}</span>
+        <span class="game-event-kind">{episode.kind}</span>
+        <span class="game-event-score">{Math.round(episode.pct)}%<small>vs usual {Math.round(episode.usualPct)}%</small></span>
+        <span class="game-event-detail">
+          {episode.kind === "Negative surge" && <span><ThumbsDown aria-hidden="true" />{formatCount(episode.extraNegatives)} extra negative reviews</span>}
+          <span><MessageSquare aria-hidden="true" />{formatCount(episode.reviews)} reviews total</span>
+        </span>
+      </div>
+      <div class="game-event-body">
+        {episode.record ? (
+          <>
+            <blockquote class="game-event-why">{episode.record.reason.map((sentence) => sentence.text).join(" ")}</blockquote>
+            {shownTags(episode.record).length > 0 && (
+              <div class="chips event-tags"><span class="chip-label">Reviews point to</span>{shownTags(episode.record).map((tag) => <span class="chip">{tag}</span>)}</div>
+            )}
+            {episode.record.news.length > 0 && (
+              <ul class="game-event-sources">
+                {episode.record.news.map((item) => (
+                  <li>
+                    <span class="game-event-source">{item.source} · {item.date}</span>
+                    <a href={item.url} target="_blank" rel="noopener">{item.title}<ArrowUpRight /></a>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </>
+        ) : (
+          <p class="caption game-event-none">No explanation written for this event yet.</p>
+        )}
+      </div>
+    </article>
+  ))}
+  {anyExplained && (
+    <p class="tldr-note game-events-note"><Sparkles />Explanations are auto-generated from the event's negative reviews and Steam news, then checked by code · <a href="/faq/#event-reasons">How this works<ArrowUpRight /></a></p>
+  )}
+</div>
