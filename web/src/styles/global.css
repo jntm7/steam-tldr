@@ -1077,3 +1077,7 @@ kbd { padding: 0.1rem 0.4rem; border: 1px solid var(--border); border-radius: 0.
   .review-toolbar .review-another { flex: 1 1 100%; justify-content: center; border-left: 0; border-top: 1px solid var(--border); }
 }
 
+/* Outliers timeline: just the key, in the same bar */
+.legend-toolbar.chart-toolbar { padding: 0.5rem 1rem; }
+.legend-toolbar .chart-legend { padding-left: 0; border-left: 0; }
+.key-size { display: inline-block; width: 0.45rem; height: 0.45rem; border-radius: 50%; background: var(--muted); box-shadow: 0.55rem 0 0 0.15rem color-mix(in srgb, var(--muted) 70%, transparent); margin-right: 0.75rem; }
