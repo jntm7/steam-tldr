@@ -975,3 +975,19 @@ kbd { padding: 0.1rem 0.4rem; border: 1px solid var(--border); border-radius: 0.
   .event-col .eq-row { flex-direction: column; align-items: stretch; }
   .event-col .eq-op { align-self: flex-start; margin-left: 0.75rem; }
 }
+
+/* Small labels above the trend chart and the review-count chart, with a rule and space between the two */
+.chart-label { margin: 0.75rem 0 0.35rem; font-family: var(--mono, ui-monospace, monospace); font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.chart-label-split { margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+
+/* The trend chart's range buttons and legend as one bar, with a divider between them */
+.chart-toolbar { padding: 3px 1rem 3px 3px; border-radius: 0.6rem; background: color-mix(in srgb, var(--text) 6%, transparent); }
+.chart-toolbar .segmented { padding: 0; background: none; }
+.chart-toolbar .chart-legend { padding-left: 1.25rem; border-left: 1px solid var(--border); }
+.chart-toolbar .segmented button { white-space: nowrap; }
+@media (max-width: 640px) {
+  .chart-toolbar { padding: 3px 3px 0.6rem; }
+  .chart-toolbar .segmented { width: 100%; } .chart-toolbar .segmented button { flex: 1; padding: 0.35rem 0.4rem; font-size: 0.85rem; }
+  .chart-toolbar .chart-legend { padding: 0 0.6rem; border-left: 0; }
+}
+
