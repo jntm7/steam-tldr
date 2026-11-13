@@ -188,8 +188,8 @@ html :is(button, select):disabled { cursor: not-allowed; }
 @container (max-width: 600px) { .library-table .col-reviews { display: none; } .library-table .col-score { width: 8rem; } .score-line small { display: none; } .library-table .col-game img, .row-empty { width: 80px; } }
 
 /* Library bar: the filter row and the result count with page buttons in one panel */
-.library-bar { margin-bottom: 1rem; padding: 0.65rem; border: 1px solid var(--border); border-radius: 0.75rem; background: color-mix(in srgb, var(--text) 4%, var(--bg)); }
-.toolbar { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+.library-bar { margin-bottom: 1rem; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 3px 0; }
 .toolbar-search { flex: 1 1 14rem; }
 .toolbar .field:not(.toolbar-search):not(.toolbar-view) { flex: 1 1 13rem; }
 .toolbar .toolbar-sort { flex-basis: 16.5rem; }
@@ -198,9 +198,9 @@ html :is(button, select):disabled { cursor: not-allowed; }
 .library-box { scroll-margin-top: 1rem; }
 
 /* Result count with a Clear filters link beside it, page buttons on the right */
-.results-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem 1rem; margin-top: 0.65rem; padding: 0.65rem 0.25rem 0; border-top: 1px solid var(--border); }
+.results-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem 1rem; margin-top: 0.75rem; }
 .results-bar .results { margin: 0; }
-.results.empty { margin: 0.65rem 0 0; padding: 0.65rem 0.25rem 0; border-top: 1px solid var(--border); }
+.results.empty { margin: 0.75rem 0 0; }
 .results { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem 1rem; }
 .link-button { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0; border: 0; background: none; color: var(--accent);
   font: inherit; cursor: pointer; }
@@ -1043,5 +1043,37 @@ kbd { padding: 0.1rem 0.4rem; border: 1px solid var(--border); border-radius: 0.
   .event-menus { flex-direction: column; flex-basis: 100%; }
   .event-toolbar .field { flex: none; border-left: 0; border-top: 1px solid var(--border); }
   .event-toolbar .field-label { padding-left: 0.6rem; }
+}
+
+/* Games library: search, menus and the view switch in the same bar */
+.toolbar.chart-toolbar { padding: 0.35rem; border: 1px solid var(--border); border-radius: 0.75rem; background: color-mix(in srgb, var(--text) 4%, var(--bg)); }
+.toolbar .field { height: 44px; }
+.toolbar .field input, .toolbar .field select { font-size: 0.95rem; }
+.toolbar .field-label { font-size: 0.72rem; }
+.toolbar .toolbar-search .field-label svg { width: 18px; height: 18px; }
+.toolbar .toolbar-search { border-left: 0; }
+.toolbar .toolbar-search .field-label { padding: 0 0.3rem 0 0.75rem; }
+.toolbar .toolbar-view { gap: 2px; padding: 4px; }
+.toolbar .toolbar-view button { border: 0; border-radius: 0.45rem; color: var(--muted); }
+.toolbar .toolbar-view button:hover { color: var(--text); }
+.toolbar .toolbar-view button.on { background: var(--bg); color: var(--text); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2); }
+@media (max-width: 1150px) {
+  .toolbar .toolbar-search { flex-basis: 100%; }
+  .toolbar .field:not(.toolbar-search) { border-top: 1px solid var(--border); }
+  .toolbar .toolbar-search + .field { border-left: 0; }
+}
+@media (max-width: 640px) {
+  .toolbar .field, .toolbar .field:not(.toolbar-search):not(.toolbar-view) { flex: 1 1 100%; border-left: 0; border-top: 1px solid var(--border); }
+  .toolbar .toolbar-search { border-top: 0; }
+  .toolbar .field-label { padding-left: 0.6rem; }
+}
+
+/* Reviews: the two filters and Another one in one bar */
+.review-toolbar.chart-toolbar { gap: 3px 0; padding: 3px; }
+.review-toolbar .segmented + .segmented { padding-left: 3px; border-left: 1px solid var(--border); border-radius: 0; }
+.review-toolbar .review-another { align-self: stretch; padding: 0.35rem 0.85rem; border: 0; border-left: 1px solid var(--border); border-radius: 0; }
+@media (max-width: 640px) {
+  .review-toolbar .segmented + .segmented { padding-left: 0; border-left: 0; border-top: 1px solid var(--border); padding-top: 3px; }
+  .review-toolbar .review-another { flex: 1 1 100%; justify-content: center; border-left: 0; border-top: 1px solid var(--border); }
 }
 

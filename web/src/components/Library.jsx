@@ -159,7 +159,7 @@ export default function Library({ games }) {
   return (
     <>
       <div className="library-bar">
-      <div className="toolbar">
+      <div className="toolbar chart-toolbar">
         <label className="field toolbar-search">
           <span className="field-label"><Search size={18} aria-hidden="true" /><span className="sr-only">Search games</span></span>
           <input type="search" placeholder="Search by name" value={search} onChange={(event) => setSearch(event.target.value)} />
