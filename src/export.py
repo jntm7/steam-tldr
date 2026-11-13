@@ -8,6 +8,7 @@ from pathlib import Path
 from summarize import (DROP_MIN_REVIEWS, DROP_SCORE_POINTS, FLAG_LOOKBACK_MONTHS, SURGE_EXTRA_NEGATIVES, SURGE_NEGATIVE_RATIO,
                        SURGE_SCORE_DROP, build_summary, display_name)
 from themes import FLIP_TO_COMPLAINT, FLIP_TO_PRAISE, PROBLEM_THEMES, THEMES
+from written_summary import WRITTEN_FIELD, input_hash
 
 # Where the exported summaries live, small enough to commit or host anywhere
 EXPORT_DIR = Path(__file__).resolve().parent.parent / "site_data"
@@ -61,6 +62,13 @@ def index_entry(meta: dict, sampled_reviews: int) -> dict:
         "summary": {key: steam.get(key) for key in ("total_positive", "total_negative", "total_reviews", "review_score_desc")},
     }
 
+# Carry over the old written summary when the facts it was written from have not changed
+def keep_written_summary(data: dict, path: Path) -> dict:
+    old = json.loads(path.read_text()).get(WRITTEN_FIELD) if path.exists() else None
+    if old and old.get("input_hash") == input_hash(data):
+        data[WRITTEN_FIELD] = old
+    return data
+
 # Write one game's summary file and return its path
 def export_summary(appid: int, refresh: bool = False) -> Path | None:
     summary = build_summary(appid, refresh)
@@ -68,7 +76,7 @@ def export_summary(appid: int, refresh: bool = False) -> Path | None:
         return None
     EXPORT_DIR.mkdir(exist_ok=True)
     path = EXPORT_DIR / f"{appid}.json"
-    path.write_text(json.dumps(to_json_data(summary), separators=(",", ":")))
+    path.write_text(json.dumps(keep_written_summary(to_json_data(summary), path), separators=(",", ":")))
     return path
 
 # Write the library index from every game already exported
