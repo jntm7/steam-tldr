@@ -56,7 +56,7 @@ See how players with under 2 hours compare with those who have played 50+ hours.
 
 ### Outliers
 
-Identify outliers every month across all games where negative reviews surged or the score dropped sharply, such as review bombs.
+Identify outliers every month across all games where negative reviews surged or the score dropped sharply, such as review bombs. Each event gets a short explanation of what its negative reviews pointed to, with reason tags (account/DRM, monetization, bugs/performance and more) you can filter by, and links to the Steam news it cited.
 
 ### Review randomizer
 
@@ -76,7 +76,7 @@ SteamTLDR's dataset currently includes 200 games and training on 820,000+ review
 | **2. Score tone** | A TF-IDF + logistic regression model scores each clause from 0 (negative) to 1 (positive). TF-IDF counts words, giving rare ones more weight; logistic regression learns which words lean positive or negative from each review's thumbs up or down. |
 | **3. Find themes** | Reviews are split into clauses ("great story *but* constant crashes") and matched to 16 keyword themes, like performance, price and story. |
 | **4. Flag outliers** | A month is flagged when negative reviews surge or the score drops well below the game's usual level. |
-| **5. Summarize** | Claude Haiku writes a short TL;DR from the game's numbers, and code checks every number and quote before it is kept. |
+| **5. Summarize** | Claude Haiku writes a short TL;DR from the game's numbers and explains each flagged event from its reviews and Steam news. Code checks every number, quote and tag before it is kept. |
 | **6. Publish** | Each game is saved as a small JSON file that the website reads. |
 
 Scores, review counts and trends always use Steam's exact totals. The sample is only used for themes and tone.
@@ -106,7 +106,7 @@ An off-the-shelf DistilBERT model *lost* to the simple baseline (the earlier 20-
 | F1 on short reviews (5–25 words) | **0.79** | 0.69 |
 | Speed (reviews per second) | **~10,600** | ~120 |
 
-DistilBERT was trained on movie reviews, so gamer slang like "feet first into hell" and friendly suggestions like "could use a difficulty slider" read as negative to it. It catches slightly more negative reviews (higher recall), but flags too many positive ones by mistake (lower precision). Fine-tuning it on Steam reviews is a possible next step.
+DistilBERT learned from movie reviews, so certain "gamer slang" reads as negative to it. It catches more negative reviews but also mislabels more positive ones. Fine-tuning it on Steam reviews could fix this.
 
 ### Game Summaries
 
@@ -115,16 +115,23 @@ Claude Haiku 5.5 writes each summary from the game's own numbers, and code check
 - Every number and quote must match the facts it cites.
 - The checks verify numbers and quotes, not meaning, so a sentence can still stretch a point.
 
-### Outlier Events
+### Outliers & Event Explanations
 
-- 87 events (71 negative surges, 16 score drops) across 54 of the 200 games.
+Claude Haiku 5.5 explains each event in one or two sentences from that time's negative reviews and Steam news, and code checks every quote, number and tag.
+
+| Finding | Result |
+| --- | --- |
+| Events | 87 across 54 games, all explained |
+| Cite Steam news | 54 |
+| Tagged unclear | 7 |
+| Top tags | game changes (30), bugs/performance (29), monetization (29) |
 
 ## Known Limitations
 
 - **Keywords can't read context**: for example: Helldivers 2's enemy "bugs" count as bug complaints.
 - **Sarcasm and negation** ("not bad at all") can fool a bag-of-words model.
 - **English only**, and Steam's "English" is the language a reviewer selected, so some other-language text slips in.
-- **Outliers** show that something happened, not why, or whether the reviews were fair.
+- **Event explanations** report what angry reviews pointed to, not whether the anger was fair; a tag only proves a cited line mentions its topic, not that it is the best fit.
 - **Snapshots**: each game is fetched once and shows when it was last updated.
 - **Written summaries** are checked for numbers and quotes, not meaning, so a sentence can still overstate a trend.
 - **New games** have little monthly history, so trends and outliers say less about them.
@@ -149,6 +156,9 @@ steam-tldr/
 │   ├── export.py                   # writes site_data/
 │   ├── llm.py                      # one complete() CLI call to Claude Haiku
 │   ├── written_summary.py          # TL;DR from the export's numbers, fact-checked
+│   ├── news.py                     # Steam news around a date, cached in data/
+│   ├── event_reasons.py            # why each flagged event happened
+│   ├── check_site_data.py          # offline checks of site_data/ that CI runs
 │   └── ...                         # transformer comparison and developer tools
 ├── site_data/                      # exported summaries the site reads
 └── web/                            # Astro static site built from site_data/ (GitHub Pages)
@@ -170,22 +180,27 @@ uv sync
 uv run python src/export.py
 ```
 
-## Notebooks
-
-The `notebooks/` directory contains six marimo notebooks generated by Claude that walk through how the project was built, step by step. They are written to explain ideas in plain language to developers who are new to machine learning, and include live demo examples to try them on real Steam reviews.
-
-Open one with:
+The written summaries and event explanations come from separate scripts, ran using Claude Code CLI after an export. They skip games and events whose facts have not changed:
 
 ```bash
-uv run marimo edit notebooks/01_explore.py
+uv run python src/written_summary.py
+uv run python src/event_reasons.py
 ```
 
-The notebooks read the raw review data, which isn't included in the repo. There are two options:
+## Notebooks
 
-- fetch it with `uv run python src/fetch.py <appid>` (this fetches individual games with their Steam app ID).
-- fetch it with `uv run python src/games.py` (this calls Steam's API for all 200 games and takes a long time)
+Six marimo notebooks in `notebooks/` walk through how the project was built in plain language, with live demos on real Steam reviews.
 
-Then train the model with `uv run python src/model.py`. Notebook 06 also needs `uv sync --group transformer`.
+They need the raw reviews, which aren't in the repo:
+
+```bash
+uv run python src/fetch.py <appid>           # fetch one game (use Steam App ID)
+uv run python src/games.py                   # fetch all games (not recommended)
+uv run python src/model.py                   # train the model
+uv run marimo edit notebooks/01_explore.py   # open a notebook
+```
+
+Notebook 06 also needs `uv sync --group transformer`.
 
 ## Data and Attribution
 
