@@ -8,6 +8,7 @@ import Page from "../../layouts/Page.astro";
 import ThemeList from "../../components/ThemeList.astro";
 import GameStats from "../../components/GameStats.astro";
 import GameFacts from "../../components/GameFacts.astro";
+import WrittenSummary from "../../components/WrittenSummary.astro";
 import RecentComplaints from "../../components/RecentComplaints.astro";
 import PlaytimeComplaints from "../../components/PlaytimeComplaints.astro";
 import TrendCharts from "../../components/TrendCharts.jsx";
@@ -83,6 +84,7 @@ const dots = [
       ) : change !== null && change >= BIG_CHANGE_POINTS ? (
         <p class="alert success"><CircleCheck />Recent reviews are much more positive than usual (+{change.toFixed(0)} points). The game may have improved.</p>
       ) : null}
+      <WrittenSummary summary={game.written_summary} pct={game.pct_positive} />
       <GameFacts rows={[...credits.map(([label, names]) => [label, names, 3]), ["Released", [formatDate(game.release_date)]], ["Genres", game.genres?.length ? game.genres : ["Unknown"], 6]]} />
     </div>
   </div>
