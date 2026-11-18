@@ -68,7 +68,7 @@ Read a random positive or negative review in full, fetched directly from Steam's
 
 ### Curated game library
 
-SteamTLDR's dataset currently includes 200 games and training on 820,000+ reviews.
+SteamTLDR's dataset currently includes 500 games, and its model is trained on 2 million+ reviews from all of them.
 
 ![SteamTLDR Library](https://github.com/user-attachments/assets/4237973f-6c76-4b8f-953f-56cb02cd7fbd)
 
@@ -93,10 +93,12 @@ On three games that it never saw during training, across 14,517 reviews:
 
 | Metric | Score |
 | --- | --- |
-| Accuracy | 92.0% |
-| Precision (negative reviews) | 0.893 |
-| Recall (negative reviews) | 0.929 |
-| F1 (negative reviews) | 0.911 |
+| Accuracy | 92.4% |
+| Precision (negative reviews) | 0.889 |
+| Recall (negative reviews) | 0.944 |
+| F1 (negative reviews) | 0.916 |
+
+Trained on 500 games. Going from 200 to 400 games kept F1 at 0.911: the model caught more negative reviews (recall 0.929 to 0.947) but also flagged more positive ones (precision 0.893 to 0.879). Going to 500 games won most of that precision back (0.889) with recall nearly unchanged (0.944), raising F1 to 0.916.
 
 ### Transformer comparison
 
