@@ -27,7 +27,7 @@ function randomIndex(length, current = -1) {
 // Playtime as a short bar on a log scale: 1 hour is a sliver, 1,000 hours is full
 const playtimeShare = (hours) => Math.min(1, Math.log10(hours + 1) / 3);
 
-// A review as a large pull-quote with its verdict, playtime bar and month; it animates in when the review changes
+// A review as a labeled quote, styled like the TL;DR box, with its verdict, playtime bar and month; it animates in when the review changes
 function ReviewCard({ review }) {
   const Icon = review.voted_up ? ThumbsUp : ThumbsDown;
   const color = review.voted_up ? PRAISE_COLOR : COMPLAINT_COLOR;
@@ -36,7 +36,10 @@ function ReviewCard({ review }) {
   const long = review.review.split(/\s+/).length > 60;
   return (
     <figure className="review-stage" style={{ "--verdict": color }}>
-      <blockquote className={`review-quote${long ? " long" : ""}`}>{review.review}</blockquote>
+      <div className="review-head">Player review</div>
+      <blockquote className={`review-quote${long ? " long" : ""}`}>
+        <span className="quote-mark open" aria-hidden="true">“</span>{review.review.trim()}<span className="quote-mark" aria-hidden="true">”</span>
+      </blockquote>
       <figcaption className="review-foot">
         <span className="review-verdict"><Icon aria-hidden="true" />{review.voted_up ? "Recommended" : "Not recommended"}</span>
         <span className="review-hours">

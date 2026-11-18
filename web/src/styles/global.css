@@ -821,10 +821,15 @@ kbd { padding: 0.1rem 0.4rem; border: 1px solid var(--border); border-radius: 0.
   .footer-credit { align-items: flex-start; gap: 0.6rem; padding-top: 1.25rem; border-top: 1px solid var(--border); width: 100%; }
 }
 
-/* Reviews: one review as a large pull-quote with a tinted quote mark, a coloured rule and a small playtime bar */
-.review-stage { position: relative; margin: 2.5rem 0 0.5rem; padding: 0.25rem 0 0.25rem clamp(1.1rem, 3vw, 2.5rem); border-left: 3px solid var(--verdict); animation: review-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) both; }
-.review-stage::before { content: "\201C"; position: absolute; left: 0.5rem; top: -2.6rem; font-family: Georgia, "Times New Roman", serif; font-size: 8rem; line-height: 1; color: var(--verdict); opacity: 0.16; pointer-events: none; }
-.review-quote { margin: 0; font-size: clamp(1.15rem, 2vw, 1.6rem); line-height: 1.5; letter-spacing: -0.005em; white-space: pre-wrap; overflow-wrap: anywhere; }
+/* Reviews: one review as a labeled quote, styled like the TL;DR box (verdict-coloured left rule, faint tint, mono label),
+   with curly quotes in the verdict colour, the opening one hanging outside the text edge */
+.review-stage { position: relative; margin: 1.5rem 0 0.5rem; padding: 1rem 1.5rem 1.1rem; border-left: 3px solid var(--verdict); border-radius: 0 0.6rem 0.6rem 0;
+  background: color-mix(in srgb, var(--verdict) 7%, transparent); animation: review-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.review-head { margin-bottom: 0.6rem; font-family: var(--mono, ui-monospace, monospace); font-size: 0.68rem;
+  font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--verdict); }
+.review-quote { margin: 0; padding-left: 0.6em; font-size: clamp(1.15rem, 2vw, 1.6rem); line-height: 1.5; letter-spacing: -0.005em; white-space: pre-wrap; overflow-wrap: anywhere; }
+.quote-mark { font-weight: 700; color: var(--verdict); }
+.quote-mark.open { margin-left: -0.5em; display: inline-block; width: 0.5em; }
 .review-quote.long { font-size: 1.02rem; line-height: 1.65; }
 .review-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1.75rem; margin-top: 1.5rem; font-family: var(--mono, ui-monospace, monospace); font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
 .review-verdict { display: inline-flex; align-items: center; gap: 0.45rem; font-weight: 700; color: var(--verdict); }
