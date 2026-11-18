@@ -1,7 +1,7 @@
 import argparse
 import json
 import pandas as pd
-from fetch import HELPFUL_REVIEWS, HISTORY_REVIEWS, RECENT_DAYS, RECENT_REVIEWS, cached_games
+from fetch import HELPFUL_REVIEWS, HISTORY_REVIEWS, RECENT_DAYS, RECENT_REVIEWS, cache_is_fresh, cache_paths, cached_games
 from games import GAMES
 from model import RANDOM_SEED
 from pathlib import Path
@@ -78,6 +78,21 @@ def keep_event_reasons(data: dict, path: Path) -> dict:
         data[REASONS_FIELD] = sorted(kept.values(), key=lambda record: record["start"])
     return data
 
+# Whether the saved file already matches the cached Steam data, so the export can be skipped
+def is_current(appid: int) -> bool:
+    path = EXPORT_DIR / f"{appid}.json"
+    _, meta_path = cache_paths(appid)
+    if not path.exists() or not cache_is_fresh(meta_path):
+        return False
+    return json.loads(path.read_text()).get("fetched_at") == json.loads(meta_path.read_text()).get("fetched_at", "")[:10]
+
+# Write a file only when its text changed
+def write_if_changed(path: Path, text: str) -> bool:
+    if path.exists() and path.read_text() == text:
+        return False
+    path.write_text(text)
+    return True
+
 # Write one game's summary file and return its path
 def export_summary(appid: int, refresh: bool = False) -> Path | None:
     summary = build_summary(appid, refresh)
@@ -85,7 +100,7 @@ def export_summary(appid: int, refresh: bool = False) -> Path | None:
         return None
     EXPORT_DIR.mkdir(exist_ok=True)
     path = EXPORT_DIR / f"{appid}.json"
-    path.write_text(json.dumps(keep_event_reasons(keep_written_summary(to_json_data(summary), path), path), separators=(",", ":")))
+    write_if_changed(path, json.dumps(keep_event_reasons(keep_written_summary(to_json_data(summary), path), path), separators=(",", ":")))
     return path
 
 # Write the library index from every game already exported
@@ -94,19 +109,27 @@ def export_index() -> Path:
     entries = [index_entry(meta, json.loads((EXPORT_DIR / f"{meta['appid']}.json").read_text())["sampled_reviews"])
                for meta in cached_games() if meta["appid"] in exported]
     path = EXPORT_DIR / INDEX_NAME
-    path.write_text(json.dumps(entries, separators=(",", ":")))
+    write_if_changed(path, json.dumps(entries, separators=(",", ":")))
     return path
 
-# Write the sampling, theme and flag settings the website's FAQ quotes
-def export_settings() -> Path:
-    settings = {
+# The sampling, theme and flag settings the website's FAQ quotes
+def current_settings() -> dict:
+    return {
         "helpful_reviews": HELPFUL_REVIEWS, "recent_reviews": RECENT_REVIEWS, "recent_days": RECENT_DAYS, "history_reviews": HISTORY_REVIEWS,
         "themes": THEMES, "problem_themes": sorted(PROBLEM_THEMES), "flip_to_complaint": FLIP_TO_COMPLAINT, "flip_to_praise": FLIP_TO_PRAISE,
         "flag_lookback_months": FLAG_LOOKBACK_MONTHS, "surge_negative_ratio": SURGE_NEGATIVE_RATIO, "surge_extra_negatives": SURGE_EXTRA_NEGATIVES,
         "surge_score_drop": SURGE_SCORE_DROP, "drop_min_reviews": DROP_MIN_REVIEWS, "drop_score_points": DROP_SCORE_POINTS,
     }
+
+# Whether the saved settings differ from the current ones, which means every game needs rebuilding
+def settings_changed() -> bool:
     path = EXPORT_DIR / SETTINGS_NAME
-    path.write_text(json.dumps(settings, separators=(",", ":")))
+    return not path.exists() or json.loads(path.read_text()) != json.loads(json.dumps(current_settings()))
+
+# Write the settings file
+def export_settings() -> Path:
+    path = EXPORT_DIR / SETTINGS_NAME
+    write_if_changed(path, json.dumps(current_settings(), separators=(",", ":")))
     return path
 
 # Read one exported summary, or None when it was never exported
@@ -141,11 +164,16 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Export game summaries as small JSON files for the website.")
     parser.add_argument("appids", type=int, nargs="*", help="app IDs to export (default: every game in games.py)")
     parser.add_argument("--refresh", action="store_true", help="re-fetch from Steam even when the cache is under 30 days old")
+    parser.add_argument("--force", action="store_true", help="rebuild every game from its cache, e.g. after retraining the model")
     args = parser.parse_args()
 
+    force = args.force or args.refresh or settings_changed()
     appids = args.appids or list(GAMES)
     for i, appid in enumerate(appids, start=1):
         print(f"[{i}/{len(appids)}] {GAMES.get(appid, appid)}", end=" ")
+        if not force and is_current(appid):
+            print("unchanged")
+            continue
         path = export_summary(appid, args.refresh)
         print("skipped (no reviews)" if path is None else f"{path.stat().st_size / 1024:.0f} KB")
     print(f"Index: {export_index()}")
