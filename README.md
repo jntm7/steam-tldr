@@ -10,11 +10,11 @@
    ![scikit-learn](https://img.shields.io/badge/scikit--learn-ML-F7931E?logo=scikitlearn&logoColor=white)
    ![pandas](https://img.shields.io/badge/pandas-data-150458?logo=pandas&logoColor=white)
 
-   [steamtldr.jntam.ca](https://steamtldr.jntam.ca)
+   Live Demo: [steamtldr.jntam.ca](https://steamtldr.jntam.ca)
 
 </div>
 
-![SteamTLDR Home](https://github.com/user-attachments/assets/b3d54cfa-d795-4e78-b534-97bd4389d565)
+![SteamTLDR Home](https://github.com/user-attachments/assets/a91b7b1f-aec9-4c90-9855-13efa64deeef)
 
 SteamTLDR is a personal project built to get hands-on practice with machine learning and sentiment analysis.
 
@@ -60,6 +60,7 @@ See how players with under 2 hours compare with those who have played 50+ hours.
 
 Identify outliers every month across all games where negative reviews surged or the score dropped sharply, such as review bombs. Each event gets a short explanation of what its negative reviews pointed to, with reason tags (account/DRM, monetization, bugs/performance and more) you can filter by, and links to the Steam news it cited.
 
+![SteamTLDR Events](https://github.com/user-attachments/assets/f4e85d63-3e4b-4fd2-bfaf-0554b56a67d2)
 ![SteamTLDR Outliers](https://github.com/user-attachments/assets/fb1de7c8-ff8f-4135-953a-edca846c8cd8)
 
 ### Review randomizer
@@ -70,7 +71,7 @@ Read a random positive or negative review in full, fetched directly from Steam's
 
 SteamTLDR's dataset currently includes 500 games, and its model is trained on 2 million+ reviews from all of them.
 
-![SteamTLDR Library](https://github.com/user-attachments/assets/4237973f-6c76-4b8f-953f-56cb02cd7fbd)
+![SteamTLDR Library](https://github.com/user-attachments/assets/618187c4-804c-4e34-90f6-d23902e7bb68)
 
 ## Methodology
 
@@ -150,7 +151,7 @@ Claude Haiku 5.5 explains each event in one or two sentences from that time's ne
 
 ```bash
 steam-tldr/
-├── notebooks/                      # marimo notebooks that teach each step, in order
+├── notebooks/                      # marimo notebooks that teach each step (written by Claude)
 │   ├── 01_explore.py               # data quality, review length, playtime, trends
 │   ├── 02_text_to_numbers.py       # tokenizing, bag of words, TF-IDF
 │   ├── 03_first_model.py           # train/test split, logistic regression
