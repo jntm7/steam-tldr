@@ -58,6 +58,9 @@ const points = months
   .map((month) => ({ label: month.label, pct: month.pct_positive, reviews: month.reviews, flag: flags[month.label] ?? null }));
 
 // Outline dots as (anchor, label), skipping recent complaints when there are none
+// Link preview text: the TL;DR when there is one
+const shareDescription = game.written_summary?.tldr?.map((sentence) => sentence.text).join(" ") || `What players praise and complain about in ${name}, from Steam reviews.`;
+
 const dots = [
   ["overview", "Overview"],
   ["praise", "Praise"],
@@ -70,7 +73,7 @@ const dots = [
 ].filter(Boolean);
 ---
 
-<Page title={name} dots={dots} heroId="overview">
+<Page title={name} description={shareDescription} image={game.header_image ?? undefined} dots={dots} heroId="overview">
   <a slot="kicker" class="back-link" href="/games/"><ArrowLeft />All games</a>
   <Fragment slot="heading">{name}</Fragment>
   <div slot="header-wide">

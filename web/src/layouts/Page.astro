@@ -9,14 +9,14 @@ import SectionDots from "../components/SectionDots.astro";
 // Inner pages (Games, Outliers, FAQ, game pages): the Home nav, a header band on the icon pattern, then the content.
 // The outline is `dots`, (anchor, label) pairs drawn as a column of dots with their names, fixed in a strip kept free right of
 // the header and content and lined up with the end of the nav. Narrow screens get a row of chips instead
-const { title, kicker, lede, dots, heroId } = Astro.props;
+const { title, description, image, kicker, lede, dots, heroId } = Astro.props;
 const withDots = Boolean(dots);
 ---
 
 <!doctype html>
 <html lang="en">
   <head>
-    <SiteHead title={title} />
+    <SiteHead title={title} description={description} image={image} />
   </head>
   <body class="pill-layout">
     <SiteNav />

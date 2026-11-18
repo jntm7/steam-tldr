@@ -4,13 +4,13 @@ import SiteFooter from "../components/SiteFooter.astro";
 import SiteNav from "../components/SiteNav.astro";
 import PageMotion from "../components/PageMotion.astro";
 
-const { title } = Astro.props;
+const { title, description, image } = Astro.props;
 ---
 
 <!doctype html>
 <html lang="en">
   <head>
-    <SiteHead title={title} />
+    <SiteHead title={title} description={description} image={image} />
   </head>
   <body class="pill-layout">
     <SiteNav />
