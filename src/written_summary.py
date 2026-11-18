@@ -4,13 +4,21 @@ import json
 import re
 from datetime import date
 from llm import ModelError, complete, model_name
-from summarize import SAME_SCORE_POINTS
+from summarize import MIN_THEME_PCT, SAME_SCORE_POINTS
 
 # Field in site_data/<appid>.json that holds the written summary
 WRITTEN_FIELD = "written_summary"
 
 # Bump when the prompt or facts change, so every game is written again
+# (a rule added only for games whose facts also gain a line, like NO_COMPLAINTS_FACT, needs no bump: their hash changes anyway)
 PROMPT_VERSION = 7
+
+# Fact line for games where no complaint theme reaches the cut-off, so the model has something true to say instead of describing its inputs
+NO_COMPLAINTS_FACT = f"Complaints: no complaint theme reaches {MIN_THEME_PCT:g}% of all reviews, so complaints are few and spread across different topics"
+NO_PRAISE_FACT = f"Praise: no praise theme reaches {MIN_THEME_PCT:g}% of all reviews, so praise is spread across different topics"
+
+# Words that describe the model's inputs instead of the game ("the supplied reviews name no complaint", "this summary reports none")
+META_WORDS = re.compile(r"\b(supplied|provided|listed|this summary|the data|review data|data given|the facts|cannot be named)\b", re.IGNORECASE)
 
 # How long each part may be, in sentences, words and numbers
 TLDR_SENTENCES = 2
@@ -73,9 +81,13 @@ def build_facts(data: dict) -> tuple[dict, dict]:
     for row in rows(data["praise"]):
         fact(f"Praise: {round(row['pct'])}% of all reviews praise {row['theme']}")
         quote(row["example"], f"praise, {row['theme']}")
+    if not rows(data["praise"]):
+        fact(NO_PRAISE_FACT)
     for row in rows(data["complaints"]):
         fact(f"Complaint: {round(row['pct'])}% of all reviews complain about {row['theme']}")
         quote(row["example"], f"complaint, {row['theme']}")
+    if not rows(data["complaints"]):
+        fact(NO_COMPLAINTS_FACT)
     for row in rows(data["recent_complaints"]):
         fact(f"Complaint in the last 30 days: {round(row['pct'])}% of recent reviews complain about {row['theme']}, against {round(row['all_time_pct'])}% all time")
         quote((row["examples"] or [None])[0], f"recent complaint, {row['theme']}")
@@ -110,6 +122,12 @@ def build_prompt(data: dict, facts: dict, quotes: dict, must_cite: str | None) -
     name, verdict = data["name"], verdict_text(data)
     lines = "\n".join(f"{key}: {text}" for key, text in {**facts, **quotes}.items())
     swing = f"\n- The last 30 days ({must_cite}) differ a lot from the all-time score, so the tldr must say so and cite {must_cite}." if must_cite else ""
+    for missing, part, instead in ((NO_PRAISE_FACT, "praise", "praise is spread across many different topics"),
+                                   (NO_COMPLAINTS_FACT, "complaint", "complaints are few and spread across different topics")):
+        key = next((key for key, text in facts.items() if text == missing), None)
+        if key:
+            swing += (f"\n- No {part} theme stands out ({key}): in place of the main {part}, say {instead}, and cite {key}."
+                      " Talk about the game and its players, never about these lines, the data or this summary.")
     return f"""You write the short summary at the top of a game's page on SteamTLDR, a site that tells gamers why players like or dislike a Steam game.
 
 Facts about {name} (F lines) and short quotes from real Steam reviews (Q lines):
@@ -144,9 +162,12 @@ def normalize(text: str) -> str:
 def numbers_in(text: str) -> set[str]:
     return {number.replace(",", "") for number in NUMBER.findall(text)}
 
-# How many numbers a sentence uses outside quotes and the game name
+# How many numbers a sentence uses outside quotes, the game name and playtime group names like "under 2 hours"
 def count_numbers(text: str, name: str) -> int:
-    return len(NUMBER.findall(QUOTED.sub("", text).replace(name, "")))
+    text = QUOTED.sub("", text).replace(name, "")
+    for group_name in PLAYTIME_NAMES.values():
+        text = re.sub(re.escape(group_name), "", text, flags=re.IGNORECASE)
+    return len(NUMBER.findall(text))
 
 # Problems with one list of sentences: wrong length, missing or unknown citations, numbers or quotes not in the cited lines or the game name
 def check_sentences(sentences, part: str, count: int, facts: dict, quotes: dict, name: str) -> list[str]:
@@ -194,7 +215,9 @@ def check_answer(raw: str, facts: dict, quotes: dict, data: dict, must_cite: str
             errors.append(f'"tldr" uses more than {TLDR_MAX_NUMBERS} numbers; move the rest to "details"')
         details_numbers = [count_numbers(sentence["text"], name) for sentence in answer["details"]]
         if sum(details_numbers) > DETAILS_MAX_NUMBERS or max(details_numbers) > SENTENCE_MAX_NUMBERS:
-            errors.append(f'"details" may use at most {SENTENCE_MAX_NUMBERS} numbers per sentence and {DETAILS_MAX_NUMBERS} in all; explain in words instead of listing numbers')
+            counts = "; ".join(f'"{s["text"]}" has {n}' for s, n in zip(answer["details"], details_numbers))
+            errors.append(f'"details" may use at most {SENTENCE_MAX_NUMBERS} numbers per sentence and {DETAILS_MAX_NUMBERS} in all '
+                          f'(now {sum(details_numbers)}: {counts}); drop the least useful numbers and say them in words, like "most" or "far fewer"')
         if must_cite and not any(must_cite in sentence["cites"] for sentence in answer["tldr"]):
             errors.append(f'"tldr" must mention the big change in the last 30 days and cite {must_cite}')
         if not normalize(answer["tldr"][0]["text"]).startswith(normalize(verdict_text(data))):
@@ -211,6 +234,9 @@ def check_answer(raw: str, facts: dict, quotes: dict, data: dict, must_cite: str
         swearing = sorted({word.lower() for word in SWEARING.findall(f"{tldr} {details}")})
         if swearing:
             errors.append(f'Pick a quote without swearing (found: {", ".join(swearing)})')
+        meta = sorted({word.lower() for word in META_WORDS.findall(unquoted)})
+        if meta:
+            errors.append(f'Write about the game and its players, not about the lines you were given (found: {", ".join(meta)})')
         if PERCENT_OF_PLAYERS.search(unquoted):
             errors.append('Percentages are shares of reviews: write "% of reviews", never "% of players"')
     return answer, errors
