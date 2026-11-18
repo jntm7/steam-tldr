@@ -1,12 +1,35 @@
 ---
-import { Bug, Gamepad2, MessageSquare, Music, Palette, Star, Swords, ThumbsDown, ThumbsUp, TrendingUp } from "lucide-react";
+import {
+  BookOpen, Bug, Car, Castle, ChartLine, Clock, Coins, Compass, Crosshair, Crown, Dices, Flame, Gamepad2, Gauge, Gem, Ghost, Headphones,
+  Heart, Hourglass, Joystick, KeyRound, Layers, Map, Medal, MessageSquare, MessageSquareQuote, Mountain, Music, Palette, Puzzle, Rocket, Server,
+  Shield, ShieldX, Ship, Sparkles, Star, Sword, Swords, Tag, Target, ThumbsDown, ThumbsUp, TrendingUp, TriangleAlert, Trophy, Users,
+  WandSparkles, Wrench, Zap,
+} from "lucide-react";
 
-// Static backdrop for the home page hero: one tile of small brand icons scattered on a jittered grid, repeated across the hero.
-// A fixed seed keeps the scatter the same on every build
-const TILE = 520;
-const CELLS = 5;
+// Static backdrop for the home hero and page headers: one wide tile of small icons (brand, review signals, themes, genres) scattered at random,
+// repeated across the page. Each page gets its own scatter, seeded from its path, and the same one on every build
+const TILE_W = 1680;
+const TILE_H = 1080;
 const SEED = 7;
-const EMPTY_SHARE = 0.2;
+// Icons are dropped at random spots, one at a time, until the tile holds COUNT of them. A spot is kept only if the icon would stay at least
+// PADDING clear of every icon already placed, edge to edge, so icons never touch but the spacing still varies with their sizes
+const COUNT = 150;
+
+// Pages can ask for fewer or more icons per tile (Home uses fewer, so its busier hero stays calm)
+const { count = COUNT } = Astro.props;
+const PADDING = 22;
+const ATTEMPTS = 20000;
+const MIN_SIZE = 14;
+const MAX_SIZE = 44;
+// An icon this close to a tile edge is also drawn on the opposite edge, so it is not cut off where the tile repeats
+const EDGE = MAX_SIZE;
+
+// A seed from the page's path (FNV-1a hash mixed with SEED), so every page has its own scatter; change SEED to reshuffle them all
+function pageSeed(path) {
+  let hash = 2166136261 ^ SEED;
+  for (const char of path.replace(/\/+$/, "") || "/") hash = Math.imul(hash ^ char.charCodeAt(0), 16777619);
+  return hash >>> 0;
+}
 
 // Small seeded random number generator (mulberry32), so the scatter never changes between builds
 function random(seed) {
@@ -18,30 +41,59 @@ function random(seed) {
   };
 }
 
-// Icons as (kind, tone): "mark" is the logo controller, "bars" the logo's praise and complaint lines, the rest Lucide icons
+// Icons as (kind, tone): "mark" is the logo controller, "bars" the logo's praise and complaint lines, the rest Lucide icons. Four groups,
+// drawn at random: the brand (6 of 60 entries, about one in ten), review signals, the keyword themes' icons, and genres and other game things.
+// Blue is for good signs, red for problems, muted for everything else
 const ICONS = [
-  ["mark", "brand"], [ThumbsUp, "blue"], ["bars", "brand"], [MessageSquare, "muted"], [Star, "blue"], [ThumbsDown, "red"],
-  [Gamepad2, "muted"], [TrendingUp, "blue"], ["mark", "brand"], [Bug, "red"], [Swords, "muted"], ["bars", "brand"],
-  [Palette, "muted"], [ThumbsUp, "blue"], [Music, "muted"], [MessageSquare, "muted"],
+  // Brand
+  ["mark", "brand"], ["mark", "brand"], ["mark", "brand"], ["bars", "brand"], ["bars", "brand"], ["bars", "brand"],
+  // Review signals and page sections
+  [ThumbsUp, "blue"], [ThumbsUp, "blue"], [ThumbsDown, "red"], [MessageSquare, "muted"], [MessageSquareQuote, "muted"], [Star, "blue"],
+  [TrendingUp, "blue"], [ChartLine, "blue"], [TriangleAlert, "red"], [Clock, "muted"], [Hourglass, "muted"], [Heart, "blue"],
+  // Theme icons, the same ones the FAQ and game pages use (the difficulty theme's skull is left out here: it reads as grim in a backdrop)
+  [Gauge, "muted"], [Bug, "red"], [Tag, "muted"], [Server, "muted"], [ShieldX, "red"], [Users, "muted"], [BookOpen, "muted"],
+  [Swords, "muted"], [Palette, "muted"], [Music, "muted"], [Layers, "muted"], [Wrench, "muted"], [Puzzle, "muted"],
+  [KeyRound, "muted"],
+  // Genres and other game things
+  [Gamepad2, "muted"], [Joystick, "muted"], [Car, "muted"], [Castle, "muted"], [Crosshair, "muted"], [Ghost, "muted"], [Rocket, "muted"],
+  [Trophy, "blue"], [Dices, "muted"], [Target, "muted"], [WandSparkles, "muted"], [Map, "muted"], [Headphones, "muted"], [Coins, "muted"],
+  [Flame, "red"], [Sparkles, "blue"], [Gem, "blue"], [Zap, "muted"], [Shield, "muted"], [Medal, "blue"], [Sword, "muted"],
+  [Mountain, "muted"], [Ship, "muted"], [Crown, "blue"], [Compass, "muted"],
 ];
 
-// Up to one icon per grid cell (some cells left empty), nudged well off-centre, turned a little and sized at random
-const next = random(SEED);
-const cell = TILE / CELLS;
-const icons = Array.from({ length: CELLS * CELLS }, (_, i) => {
-  const [kind, tone] = ICONS[Math.floor(next() * ICONS.length)];
-  const size = 18 + next() * 20;
-  const x = (i % CELLS) * cell + cell / 2 + (next() - 0.5) * cell * 0.7;
-  const y = Math.floor(i / CELLS) * cell + cell / 2 + (next() - 0.5) * cell * 0.7;
-  const angle = (next() - 0.5) * 60;
-  const empty = next() < EMPTY_SHARE;
-  return { kind, Icon: typeof kind === "string" ? null : kind, tone, size, x, y, angle, empty };
-}).filter((icon) => !icon.empty);
+// The icon list shuffled once with the seed and dealt in order, so a tile repeats an icon only after using every one
+const next = random(pageSeed(Astro.url.pathname));
+const deck = [...ICONS];
+for (let i = deck.length - 1; i > 0; i--) {
+  const j = Math.floor(next() * (i + 1));
+  [deck[i], deck[j]] = [deck[j], deck[i]];
+}
+
+// Random spots with random sizes, each kept PADDING clear of every other icon, measured across tile edges too so the repeat has no seams
+const spots = [];
+const distance = (a, b) => {
+  const dx = Math.min(Math.abs(a.x - b.x), TILE_W - Math.abs(a.x - b.x));
+  const dy = Math.min(Math.abs(a.y - b.y), TILE_H - Math.abs(a.y - b.y));
+  return Math.hypot(dx, dy);
+};
+for (let i = 0; i < ATTEMPTS && spots.length < count; i++) {
+  const spot = { x: next() * TILE_W, y: next() * TILE_H, size: MIN_SIZE + next() * (MAX_SIZE - MIN_SIZE) };
+  if (spots.every((other) => distance(spot, other) >= (spot.size + other.size) / 2 + PADDING)) spots.push(spot);
+}
+
+// One icon per spot, dealt from the shuffled list and turned a little; copies on the far edge for icons near an edge
+const icons = spots.flatMap(({ x, y, size }, i) => {
+  const [kind, tone] = deck[i % deck.length];
+  const icon = { kind, Icon: typeof kind === "string" ? null : kind, tone, size, angle: (next() - 0.5) * 60 };
+  const xs = [x, ...(x < EDGE ? [x + TILE_W] : x > TILE_W - EDGE ? [x - TILE_W] : [])];
+  const ys = [y, ...(y < EDGE ? [y + TILE_H] : y > TILE_H - EDGE ? [y - TILE_H] : [])];
+  return xs.flatMap((cx) => ys.map((cy) => ({ ...icon, x: cx, y: cy })));
+});
 ---
 
 <svg class="hero-pattern" aria-hidden="true" focusable="false">
   <defs>
-    <pattern id="hero-pattern" width={TILE} height={TILE} patternUnits="userSpaceOnUse">
+    <pattern id="hero-pattern" width={TILE_W} height={TILE_H} patternUnits="userSpaceOnUse">
       {icons.map(({ kind, Icon, tone, size, x, y, angle }) => (
         <g class={`pat-${tone}`} transform={`translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${angle.toFixed(1)})`}>
           {kind === "mark" ? (
