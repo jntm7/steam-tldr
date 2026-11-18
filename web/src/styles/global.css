@@ -359,7 +359,7 @@ html :is(button, select):disabled { cursor: not-allowed; }
   background: color-mix(in srgb, var(--text) 4%, var(--bg)); color: inherit; text-decoration: none; transition: background 0.15s, border-color 0.15s; }
 .event-row:hover { border-color: var(--accent); background: color-mix(in srgb, var(--text) 8%, var(--bg)); }
 .event-row img, .event-row .row-empty { width: 110px; height: auto; aspect-ratio: 460 / 215; border-radius: 4px; object-fit: cover; background: var(--cover-bg); }
-.event-extra { font-size: 0.85rem; color: var(--muted); text-align: right; }
+.event-extra { display: flex; flex-direction: column; gap: 0.15rem; font-size: 0.85rem; color: var(--muted); text-align: right; }
 .event-score { font-size: 0.9rem; text-align: right; }
 .event-drop { font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; }
 .event-why { grid-column: 2 / -1; display: grid; grid-template-columns: 3rem minmax(0, 1fr); column-gap: 0.9rem; row-gap: 0.45rem; align-items: baseline;
@@ -395,7 +395,8 @@ html :is(button, select):disabled { cursor: not-allowed; }
 @media (max-width: 640px) { .game-event { grid-template-columns: minmax(0, 1fr); gap: 1rem; } .game-event-meta { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 1rem; }
   .game-event-when { grid-area: 1 / 1; } .game-event-kind { grid-area: 2 / 1; } .game-event-detail { grid-area: 3 / 1 / 4 / 3; }
   .game-event-score { grid-area: 1 / 2 / 3 / 3; flex-direction: column; align-items: flex-end; row-gap: 0.15rem; } }
-@media (max-width: 1000px) { .event-row { grid-template-columns: 110px minmax(0, 1fr) 10.5rem 5.5rem; } .event-extra { display: none; } }
+.event-sub-reviews { display: none; }
+@media (max-width: 1000px) { .event-row { grid-template-columns: 110px minmax(0, 1fr) 10.5rem 5.5rem; } .event-extra { display: none; } .event-sub-reviews { display: inline; } }
 @media (max-width: 640px) {
   .event-row { grid-template-columns: 80px minmax(0, 1fr) auto; } .event-score { display: none; } .event-row img, .event-row .row-empty { width: 80px; }
   .event-row .row-name { white-space: normal; line-height: 1.3; } .event-row .row-name small { overflow: visible; white-space: normal; margin-top: 0.2rem; }
@@ -1100,3 +1101,173 @@ kbd { padding: 0.1rem 0.4rem; border: 1px solid var(--border); border-radius: 0.
 .legend-toolbar.chart-toolbar { padding: 0.5rem 1rem; }
 .legend-toolbar .chart-legend { padding-left: 0; border-left: 0; }
 .key-size { display: inline-block; width: 0.45rem; height: 0.45rem; border-radius: 50%; background: var(--muted); box-shadow: 0.55rem 0 0 0.15rem color-mix(in srgb, var(--muted) 70%, transparent); margin-right: 0.75rem; }
+
+/* Outliers overview: a ruled strip of three numbers with small graphics, then two spotlight cards */
+.ov { display: grid; gap: 1.75rem; }
+.ov-strip, .ov-spots { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.ov-strip { grid-template-columns: minmax(0, 1fr) minmax(0, 2.6fr); }
+.ov-spots { grid-template-columns: minmax(8.5rem, 0.5fr) minmax(0, 1.25fr) minmax(0, 1.25fr); padding-top: 1.75rem; border-top: 1px solid var(--border); }
+.ov-cell, .ov-spot { display: flex; flex-direction: column; gap: 0.6rem; min-width: 0; padding: 0.25rem 1.5rem; border-left: 1px solid var(--border); }
+.ov-cell:first-child, .ov-spot:first-child { padding-left: 0; border-left: 0; }
+.ov .cell-label { margin: 0; font-family: var(--mono); font-weight: 400; letter-spacing: 0.1em; font-size: 0.68rem; }
+.ov .cell-label small { margin-left: 0.5rem; letter-spacing: 0.04em; text-transform: none; opacity: 0.8; }
+.ov-stat { font-size: clamp(1.9rem, 3vw, 2.6rem); font-weight: 700; line-height: 1.1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.ov-stat small { font-size: 0.45em; font-weight: 400; letter-spacing: 0; color: var(--muted); }
+.ov-key { display: flex; flex-wrap: wrap; gap: 0.3rem 1rem; font-family: var(--mono); font-size: 0.72rem; color: var(--muted); }
+.ov-key span { display: inline-flex; align-items: center; gap: 0.4rem; }
+.ov-key .key-dot { width: 8px; height: 8px; }
+.ov-track { height: 6px; border-radius: 3px; overflow: hidden; background: color-mix(in srgb, var(--text) 12%, transparent); }
+.ov-track .ov-fill { display: block; height: 100%; border-radius: 3px; background: #e05d5d; }
+.ov-split { display: flex; gap: 2px; height: 6px; }
+.ov-split .ov-fill { border-radius: 3px; }
+.ov-strip .ov-cell > .ov-track, .ov-split { margin-top: auto; }
+
+/* Events per year: stacked columns, score drops on top of surges, 2px apart */
+.ov-years { display: flex; align-items: stretch; gap: 4px; height: 6.5rem; margin-top: auto; }
+.ov-year { display: flex; flex: 1; flex-direction: column; align-items: stretch; gap: 0.3rem; height: 100%; min-width: 0; cursor: default; }
+.ov-col-area { display: flex; flex: 1; flex-direction: column; justify-content: flex-end; align-items: stretch; min-height: 0; }
+.ov-col-count { margin-bottom: 0.2rem; font-family: var(--mono); font-size: 0.62rem; line-height: 1; text-align: center; color: var(--muted); font-variant-numeric: tabular-nums; }
+.ov-col { display: flex; flex-direction: column; gap: 2px; width: 100%; min-height: 3px; max-height: calc(100% - 0.85rem); }
+.ov-col i { min-height: 2px; border-radius: 2px; }
+.ov-year-label { font-family: var(--mono); font-size: 0.58rem; letter-spacing: -0.02em; line-height: 1; text-align: center; color: var(--muted); }
+.ov-year:hover .ov-col { filter: brightness(1.2); }
+.ov-year:hover .ov-year-label, .ov-year:hover .ov-col-count { color: var(--text); }
+
+/* Spotlights: the game's banner, name and figure, then two bars to compare */
+.ov-spot { color: inherit; text-decoration: none; }
+.ov-spot-head { display: flex; align-items: center; gap: 0.9rem; min-width: 0; }
+.ov-spot-head img { flex: none; width: 6.5rem; height: auto; aspect-ratio: 460 / 215; border-radius: 0.35rem; object-fit: cover; }
+.ov-spot-head div { display: flex; flex: 1; flex-direction: column; min-width: 0; }
+.ov-spot-head strong { font-size: 1.15rem; line-height: 1.3; overflow-wrap: break-word; }
+.ov-spot:hover strong { color: var(--accent); }
+.ov-spot-head div span { font-family: var(--mono); font-size: 0.72rem; color: var(--muted); }
+.ov-spot-top { display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem 1rem; }
+.ov-spot-top em { font-size: 1.35rem; font-style: normal; font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.ov-compare { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 0.45rem 0.8rem; }
+.ov-compare span { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.ov-compare b { font-variant-numeric: tabular-nums; text-align: right; }
+
+/* Bars and columns grow in once the section is revealed */
+.reveal-ready [data-reveal]:not(.bars-go) .ov .ov-fill { transform: scaleX(0); }
+.reveal-ready [data-reveal]:not(.bars-go) .ov-col { transform: scaleY(0); }
+[data-reveal].bars-go .ov .ov-fill { transform-origin: left; animation: bar-grow 1.1s cubic-bezier(0.22, 1, 0.36, 1) both; }
+[data-reveal].bars-go .ov-col { transform-origin: bottom; animation: col-grow 0.9s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: calc(var(--y, 0) * 40ms); }
+@keyframes col-grow { from { transform: scaleY(0); } }
+
+@media (max-width: 900px) {
+  .ov-strip .ov-cell + .ov-cell { padding-right: 0; }
+  .ov-spots { grid-template-columns: minmax(0, 1fr); }
+  .ov-spots > * { padding-right: 0; }
+  .ov-spots > * + * { margin-top: 1.5rem; padding: 1.5rem 0 0; border-left: 0; border-top: 1px solid var(--border); }
+}
+@media (max-width: 560px) {
+  .ov-strip { grid-template-columns: minmax(0, 1fr); }
+  .ov-strip .ov-cell { padding-right: 0; }
+  .ov-strip .ov-cell + .ov-cell { padding: 1.5rem 0 0; border-left: 0; border-top: 1px solid var(--border); }
+  .ov-spot-head { gap: 0.7rem; }
+  .ov-spot-head img { width: 5rem; }
+  .ov-spot-head strong { font-size: 1rem; }
+  .ov-spot-top em { font-size: 1.15rem; }
+}
+
+/* Outliers detection: a colour dot on each rule, then three short notes and a link to the FAQ's examples */
+.eq-label { display: inline-flex; align-items: center; gap: 0.5rem; }
+.panel .detect-notes { max-width: none; } .detect-notes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 0; padding: 1.25rem 0 0; border-top: 1px solid var(--border); list-style: none; }
+.detect-notes li { display: flex; gap: 0.7rem; padding: 0.25rem 1.5rem; border-left: 1px solid var(--border); font-size: 0.9rem; line-height: 1.45; color: var(--muted); }
+.detect-notes li:first-child { padding-left: 0; border-left: 0; }
+.detect-notes b { display: block; margin-bottom: 0.15rem; color: var(--text); }
+.detect-notes svg { flex: none; width: 1.1rem; height: 1.1rem; margin-top: 0.15rem; color: var(--text); }
+.detect-more { display: inline-flex; align-items: center; gap: 0.4rem; margin-top: 1.5rem; font-size: 0.9rem; color: var(--accent); text-decoration: none; }
+.detect-more svg { width: 1rem; height: 1rem; transition: transform 0.2s; }
+.detect-more:hover svg { transform: translateX(3px); }
+@media (max-width: 900px) {
+  .detect-notes { grid-template-columns: minmax(0, 1fr); }
+  .detect-notes li { padding: 0.75rem 0; border-left: 0; }
+  .detect-notes li + li { border-top: 1px solid var(--border); }
+}
+
+/* Outliers event list: two toolbar rows (search and view, then kind and menus), the year chip, a focused event, and the table view */
+.event-toolbar { flex-direction: column; align-items: stretch; gap: 0; padding: 3px; }
+.event-toolbar-row { display: flex; align-items: center; min-width: 0; }
+.event-toolbar-row + .event-toolbar-row { margin-top: 3px; padding-top: 3px; border-top: 1px solid var(--border); }
+.event-toolbar .event-search { flex: 1 1 auto; border-left: 0; }
+.event-toolbar .event-search .field-label { padding: 0 0.3rem 0 0.75rem; }
+.event-toolbar .event-view { flex: none; gap: 2px; padding: 3px; }
+.event-view button { width: 2.6rem; flex: none; border: 0; border-radius: 0.45rem; color: var(--muted); }
+.event-view button:hover { color: var(--text); }
+.event-view button.on { background: var(--bg); color: var(--text); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2); }
+.event-count .caption { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.9rem; }
+.event-year-chip { gap: 0.3rem; padding: 0.1rem 0.55rem; font: inherit; font-size: 0.8rem; cursor: pointer; }
+.event-year-chip svg { width: 0.75rem; height: 0.75rem; }
+.event-row.focused, .event-table tr.focused { outline: 2px solid var(--accent); outline-offset: 2px; animation: focus-pulse 1.6s ease-out 2; }
+@keyframes focus-pulse { 50% { outline-color: transparent; } }
+.chart-hint { color: var(--muted); }
+.chart-hint::before { content: "·"; margin-right: 0.75rem; }
+
+.event-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 0.9rem; }
+.event-table th { padding: 0.45rem 0.6rem; border-bottom: 1px solid var(--border); font-family: var(--mono); font-size: 0.66rem; font-weight: 400;
+  letter-spacing: 0.08em; text-align: left; text-transform: uppercase; color: var(--muted); }
+.event-table td { padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.event-table tbody tr:not(.event-table-why) { cursor: pointer; }
+.event-table tbody tr:not(.event-table-why):hover, .event-table tr.open { background: color-mix(in srgb, var(--text) 6%, transparent); }
+.event-table .col-game { padding-left: 0.25rem; }
+.event-table-game { display: flex; align-items: flex-start; gap: 0.55rem; min-width: 0; }
+.event-table-game .key-dot { flex: none; width: 8px; height: 8px; margin-top: 0.45em; }
+.event-table-name { display: flex; flex-direction: column; min-width: 0; }
+.event-table-name small { display: none; font-size: 0.75rem; color: var(--muted); }
+.event-table-game a { overflow: hidden; font-weight: 700; color: inherit; text-decoration: none; text-overflow: ellipsis; white-space: nowrap; }
+.event-table-game a:hover { color: var(--accent); }
+.event-table .col-when { width: 12.5rem; color: var(--muted); }
+.event-table th.col-drop, .event-table th.col-extra { text-align: right; }
+.event-table .col-drop { width: 5rem; font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; }
+.event-table .col-extra { width: 9rem; text-align: right; font-variant-numeric: tabular-nums; }
+.event-table .col-tags { width: 15rem; overflow: hidden; color: var(--muted); text-overflow: ellipsis; white-space: nowrap; }
+.event-table .col-open { width: 2.5rem; padding: 0; text-align: center; }
+.event-table .col-open button { display: inline-flex; padding: 0.3rem; border: 0; border-radius: 0.35rem; background: none; color: var(--muted); cursor: pointer; }
+.event-table .col-open button svg { transition: transform 0.2s; }
+.event-table tr.open .col-open button svg { transform: rotate(180deg); }
+.event-table-why td { padding: 0.2rem 0.6rem 0.9rem 1.6rem; font-size: 0.88rem; line-height: 1.55; background: color-mix(in srgb, var(--text) 6%, transparent); }
+.event-why-meta { display: block; margin-bottom: 0.3rem; font-family: var(--mono); font-size: 0.7rem; color: var(--muted); }
+.event-table-why a { margin-left: 0.6rem; color: var(--accent); white-space: nowrap; text-decoration: none; }
+.event-table-why a:hover { text-decoration: underline; }
+
+/* Clickable year columns in the overview */
+button.ov-year { padding: 0; border: 0; background: none; cursor: pointer; }
+button.ov-year:disabled { cursor: default; }
+button.ov-year:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+
+/* Hidden columns shrink to nothing instead of display: none, so the fixed table layout and the full-width "why" row stay intact */
+@media (max-width: 1000px) { .event-table .col-tags { width: 0; padding: 0; overflow: hidden; font-size: 0; } }
+@media (max-width: 640px) {
+  .event-toolbar { padding: 3px; }
+  .event-toolbar-row:last-child { flex-direction: column; align-items: stretch; }
+  .event-toolbar .event-search { flex: 1 1 auto; border-top: 0; }
+  .event-toolbar .event-view { border-top: 0; }
+  .event-table .col-extra { width: 0; padding: 0; overflow: hidden; font-size: 0; }
+  .event-table .col-when { width: 0; padding: 0; overflow: hidden; font-size: 0; }
+  .event-table-name small { display: block; }
+  .event-table .col-drop { width: 4rem; white-space: nowrap; }
+  .event-table-why td { padding-left: 0.6rem; }
+}
+
+/* Events per year: the label with a "Select a year" hint on the right */
+.ov-years-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.3rem 1rem; }
+.ov-hint { display: inline-flex; align-items: center; gap: 0.35rem; font-family: var(--mono); font-size: 0.68rem; color: var(--muted); }
+.ov-hint svg { width: 0.95rem; height: 0.95rem; color: var(--accent); }
+/* Phones: too narrow for 14 years side by side, so the year labels turn upright */
+@media (max-width: 560px) { .ov-year-label { align-self: center; writing-mode: vertical-rl; transform: rotate(180deg); } .ov-years { height: 8rem; } }
+/* Bottom row: the three cells share rows (label, headline, bars, caption), so headers and content line up across them */
+@media (min-width: 901px) {
+  .ov-spots { grid-template-rows: auto auto auto; row-gap: 0; }
+  .ov-spots > * { display: grid; grid-row: span 3; grid-template-rows: subgrid; row-gap: 0.75rem; align-items: center; }
+  .ov-spots .ov-spot-top { align-self: stretch; min-height: 1.75rem; align-items: center; }
+  .ov-spots .ov-stat { display: flex; align-items: baseline; gap: 0.3rem; }
+  .ov-affected { align-self: start; padding-top: 0.65rem; }
+  .ov-spots .ov-spot-body { align-self: stretch; justify-content: space-between; }
+}
+.ov-affected { display: flex; flex-direction: column; gap: 0.6rem; }
+.ov-track-stack { position: relative; }
+.ov-track-stack .ov-fill { position: absolute; inset: 0 auto 0 0; }
+.ov-key-stack { flex-direction: column; gap: 0.25rem; }
+.ov-spot-body { display: flex; flex-direction: column; gap: 0.75rem; }
+

@@ -39,6 +39,7 @@
       const heading = panel.querySelector(":scope > h2");
       const items = [...panel.children].filter((child) => child !== heading).flatMap((child) => {
         if (child.classList.contains("theme-list")) return [...child.children];
+        if (child.classList.contains("ov")) return [...child.querySelectorAll(".ov-cell, .ov-spot")];
         if (child.classList.contains("feature")) return [child.querySelector(".feature-main"), ...child.querySelectorAll(".feature-rest li")];
         return [child];
       });

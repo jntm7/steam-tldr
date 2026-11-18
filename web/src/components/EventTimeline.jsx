@@ -1,6 +1,7 @@
 import { CartesianGrid, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis, ZAxis } from "recharts";
 import { KIND_COLORS } from "./EventList.jsx";
 import { formatCount } from "../lib/games.js";
+import { FOCUS_EVENT, eventKey, sendToList } from "../lib/outliersBus.js";
 import { useSectionReveal } from "../lib/useSectionReveal.js";
 import { useCleanChartTabindex } from "../lib/useCleanChartTabindex.js";
 import { useWidth } from "../lib/useWidth.js";
@@ -48,6 +49,7 @@ export default function EventTimeline({ events }) {
         <div className="chart-legend">
           {Object.entries(KIND_COLORS).map(([kind, color]) => <span key={kind}><i className="key-dot" style={{ background: color }} />{kind}</span>)}
           <span><i className="key-size" />Bigger = more reviews</span>
+          <span className="chart-hint">Select a bubble to find it in the list</span>
         </div>
       </div>
       <div className="chart-label">Score drop by start date</div>
@@ -65,7 +67,8 @@ export default function EventTimeline({ events }) {
           <ZAxis type="number" dataKey="reviews" range={[60, 900]} />
           <Tooltip content={<EventTooltip />} cursor={{ strokeDasharray: "3 3" }} />
           {Object.entries(KIND_COLORS).map(([kind, color]) => (
-            <Scatter key={kind} data={events.filter((event) => event.kind === kind)} fill={color} fillOpacity={0.7} isAnimationActive={animate} animationDuration={1000} />
+            <Scatter key={kind} data={events.filter((event) => event.kind === kind)} fill={color} fillOpacity={0.7} isAnimationActive={animate} animationDuration={1000}
+                     cursor="pointer" onClick={(point) => sendToList(FOCUS_EVENT, eventKey(point.payload ?? point))} />
           ))}
         </ScatterChart>
       </ResponsiveContainer>

@@ -1,0 +1,149 @@
+---
+import { CalendarRange, Gamepad2, MousePointerClick, TrendingDown, TriangleAlert, Zap } from "lucide-react";
+import { KIND_COLORS } from "./EventList.jsx";
+import { COMPLAINT_COLOR, formatCount, gameHref } from "../lib/games.js";
+
+// Every flagged event (from lib/events.js) and the number of games in the library
+const { events, totalGames } = Astro.props;
+
+// Kind split
+const surges = events.filter((event) => event.kind === "Negative surge").length;
+const drops = events.length - surges;
+const gamesAffected = new Set(events.map((event) => event.appid)).size;
+const affectedPct = (gamesAffected / totalGames) * 100;
+const eventsPerGame = {};
+for (const event of events) eventsPerGame[event.appid] = (eventsPerGame[event.appid] ?? 0) + 1;
+// Share of the library with at least 1, 2 and 3 events, each a deeper shade of red
+const TIERS = [[1, 35], [2, 65], [3, 100]];
+const tiers = TIERS.map(([min, shade]) => ({
+  label: `${min}+ ${min === 1 ? "event" : "events"}`,
+  pct: (Object.values(eventsPerGame).filter((count) => count >= min).length / totalGames) * 100,
+  color: `color-mix(in srgb, ${COMPLAINT_COLOR} ${shade}%, transparent)`,
+}));
+
+// The most dramatic events
+const worst = events.reduce((best, event) => (event.dropPoints > best.dropPoints ? event : best), events[0]);
+const biggest = events.reduce((best, event) => (event.extraNegatives > best.extraNegatives ? event : best), events[0]);
+const biggestShare = Math.min(100, (biggest.extraNegatives / biggest.reviews) * 100);
+
+// Events per start year, split by kind, every year in the range shown even when empty
+const yearOf = (event) => new Date(event.start).getUTCFullYear();
+const years = events.map(yearOf);
+const firstYear = Math.min(...years);
+const lastYear = Math.max(...years);
+const perYear = Array.from({ length: lastYear - firstYear + 1 }, (_, i) => {
+  const year = firstYear + i;
+  const inYear = events.filter((event) => yearOf(event) === year);
+  const surge = inYear.filter((event) => event.kind === "Negative surge").length;
+  return { year, surge, drop: inYear.length - surge, total: inYear.length };
+});
+const yearMax = Math.max(...perYear.map((row) => row.total));
+
+---
+
+<div class="ov">
+  <div class="ov-strip">
+    <div class="ov-cell">
+      <div class="cell-label"><TriangleAlert />Flagged events</div>
+      <div class="ov-stat"><span class="sr-only">{events.length}</span><span aria-hidden="true" data-count={events.length}>{events.length}</span></div>
+      <div class="ov-split" aria-hidden="true">
+        <i class="ov-fill" style={`flex: ${surges}; background: ${KIND_COLORS["Negative surge"]}`}></i>
+        <i class="ov-fill" style={`flex: ${drops}; background: ${KIND_COLORS["Score drop"]}`}></i>
+      </div>
+      <div class="ov-key">
+        <span><i class="key-dot" style={`background: ${KIND_COLORS["Negative surge"]}`}></i>{surges} negative surges ({((surges / events.length) * 100).toFixed(0)}%)</span>
+        <span><i class="key-dot" style={`background: ${KIND_COLORS["Score drop"]}`}></i>{drops} score drops ({((drops / events.length) * 100).toFixed(0)}%)</span>
+      </div>
+    </div>
+
+    <div class="ov-cell ov-cell-years">
+      <div class="ov-years-head">
+        <div class="cell-label"><CalendarRange />Events per year ({firstYear}–{lastYear})</div>
+        <span class="ov-hint"><MousePointerClick aria-hidden="true" />Select a year</span>
+      </div>
+      <div class="ov-years" role="group" aria-label="Events per year: select a year to list its events">
+        {perYear.map((row, i) => (
+          <button type="button" class="ov-year" data-year={row.year} disabled={row.total === 0}
+            title={`${row.year}: ${row.surge} negative surges, ${row.drop} score drops. Select to list them.`}>
+            <span class="ov-col-area">
+              {row.total > 0 && <span class="ov-col-count">{row.total}</span>}
+              <span class="ov-col" style={`--y: ${i}; height: ${(row.total / yearMax) * 100}%`}>
+                {row.drop > 0 && <i style={`flex: ${row.drop}; background: ${KIND_COLORS["Score drop"]}`}></i>}
+                {row.surge > 0 && <i style={`flex: ${row.surge}; background: ${KIND_COLORS["Negative surge"]}`}></i>}
+              </span>
+            </span>
+            <span class="ov-year-label">{row.year}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  </div>
+
+  <div class="ov-spots">
+    <div class="ov-cell">
+      <div class="ov-spot-top"><div class="cell-label"><Gamepad2 />Games affected</div></div>
+      <div class="ov-stat">{gamesAffected} <small>/ {totalGames}</small></div>
+      <div class="ov-affected">
+        <div class="ov-track ov-track-stack" aria-hidden="true">
+          {tiers.map((tier) => <i class="ov-fill" style={`width: ${tier.pct.toFixed(1)}%; background: ${tier.color}`}></i>)}
+        </div>
+        <div class="ov-key ov-key-stack">
+          {tiers.map((tier) => <span><i class="key-dot" style={`background: ${tier.color}`}></i>{tier.pct.toFixed(0)}% with {tier.label}</span>)}
+        </div>
+      </div>
+    </div>
+
+    <a class="ov-spot" href={gameHref(worst.appid)}>
+      <div class="ov-spot-top">
+        <div class="cell-label"><TrendingDown />Biggest drop</div>
+        <em style={`color: ${KIND_COLORS[worst.kind]}`}>▼ {worst.dropPoints.toFixed(0)} pts</em>
+      </div>
+      <div class="ov-spot-head">
+        {worst.thumb && <img src={worst.thumb} alt="" width="220" height="103" loading="lazy" />}
+        <div><strong>{worst.game}</strong><span>{worst.when}</span></div>
+      </div>
+      <div class="ov-spot-body">
+        <div class="ov-compare">
+          <span>Usual</span>
+          <div class="ov-track"><i class="ov-fill" style={`width: ${worst.usualPct}%; background: var(--muted)`}></i></div>
+          <b>{worst.usualPct.toFixed(0)}%</b>
+          <span>That month</span>
+          <div class="ov-track"><i class="ov-fill" style={`width: ${worst.pct}%; background: ${KIND_COLORS[worst.kind]}`}></i></div>
+          <b>{worst.pct.toFixed(0)}%</b>
+        </div>
+        <div class="ov-key"><span>Share of reviews that were positive</span></div>
+      </div>
+    </a>
+
+    <a class="ov-spot" href={gameHref(biggest.appid)}>
+      <div class="ov-spot-top">
+        <div class="cell-label"><Zap />Most extra negatives</div>
+        <em style={`color: ${KIND_COLORS[biggest.kind]}`}>+{formatCount(biggest.extraNegatives)}</em>
+      </div>
+      <div class="ov-spot-head">
+        {biggest.thumb && <img src={biggest.thumb} alt="" width="220" height="103" loading="lazy" />}
+        <div><strong>{biggest.game}</strong><span>{biggest.when}</span></div>
+      </div>
+      <div class="ov-spot-body">
+        <div class="ov-compare">
+          <span>Reviews</span>
+          <div class="ov-track"><i class="ov-fill" style="width: 100%; background: var(--muted)"></i></div>
+          <b>{formatCount(biggest.reviews)}</b>
+          <span>Extra negatives</span>
+          <div class="ov-track"><i class="ov-fill" style={`width: ${biggestShare}%; background: ${KIND_COLORS[biggest.kind]}`}></i></div>
+          <b>{formatCount(biggest.extraNegatives)}</b>
+        </div>
+        <div class="ov-key"><span>Negative reviews beyond the game's usual month</span></div>
+      </div>
+    </a>
+  </div>
+</div>
+
+<script>
+  import { YEAR_EVENT, sendToList } from "../lib/outliersBus.js";
+
+  // A year column filters the event list to that year
+  document.querySelectorAll(".ov-year[data-year]").forEach((column) => {
+    column.addEventListener("click", () => sendToList(YEAR_EVENT, Number(column.dataset.year)));
+  });
+</script>

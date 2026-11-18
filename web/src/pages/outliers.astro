@@ -1,21 +1,18 @@
 ---
-import { ChartLine, Gamepad2, LayoutDashboard, Lightbulb, List, TrendingDown, TriangleAlert, Zap } from "lucide-react";
+import { ArrowRight, CalendarX, ChartLine, Database, Layers, LayoutDashboard, Lightbulb, List } from "lucide-react";
+import { KIND_COLORS } from "../components/EventList.jsx";
 import Page from "../layouts/Page.astro";
 import EventList from "../components/EventList.jsx";
 import EventTimeline from "../components/EventTimeline.jsx";
 import Equation from "../components/Equation.astro";
+import OutliersOverview from "../components/OutliersOverview.astro";
 import { games, settings } from "../lib/data.js";
 import { flaggedEvents } from "../lib/events.js";
 import { COMPLAINT_COLOR, PRAISE_COLOR, formatCount } from "../lib/games.js";
 
 const s = settings;
 const events = await flaggedEvents();
-
-// Headline numbers: how many events, how many games, and the most dramatic ones
 const surges = events.filter((event) => event.kind === "Negative surge").length;
-const worst = events.reduce((best, event) => (event.dropPoints > best.dropPoints ? event : best), events[0]);
-const biggest = events.reduce((best, event) => (event.extraNegatives > best.extraNegatives ? event : best), events[0]);
-const gamesAffected = new Set(events.map((event) => event.appid)).size;
 
 // Page outline as (anchor, heading), matching the headings below
 const dots = [
@@ -36,28 +33,8 @@ const dots = [
     <>
       <section class="panel" id="overview" data-reveal>
         <h2><LayoutDashboard color={COMPLAINT_COLOR} />Overview</h2>
-        <p class="caption">How many events there are, and which were the most dramatic</p>
-        <div class="stats">
-          <div>
-            <div class="cell-label"><TriangleAlert />Flagged events</div>
-            <div class="cell-stat"><span class="sr-only">{events.length}</span><span aria-hidden="true" data-count={events.length}>{events.length}</span></div>
-            <div class="cell-sub">{surges} negative surges and {events.length - surges} score drops</div>
-          </div>
-          <div>
-            <div class="cell-label"><Gamepad2 />Games affected</div>
-            <div class="cell-stat">{gamesAffected} of {games.length}</div>
-          </div>
-          <div>
-            <div class="cell-label"><TrendingDown />Biggest drop</div>
-            <div class="cell-stat word">{worst.game}</div>
-            <div class="cell-sub">▼ {worst.dropPoints.toFixed(0)} pts, {worst.when}: {worst.pct.toFixed(0)}% positive vs a usual {worst.usualPct.toFixed(0)}%</div>
-          </div>
-          <div>
-            <div class="cell-label"><Zap />Most extra negatives</div>
-            <div class="cell-stat"><span class="sr-only">{formatCount(biggest.extraNegatives)}</span><span aria-hidden="true" data-count={biggest.extraNegatives}>{formatCount(biggest.extraNegatives)}</span></div>
-            <div class="cell-sub">{biggest.game}, {biggest.when}</div>
-          </div>
-        </div>
+        <p class="caption">How many events there are, when they happened and which were the most dramatic</p>
+        <OutliersOverview events={events} totalGames={games.length} />
       </section>
 
       <section class="panel" id="event-list" data-reveal>
@@ -79,6 +56,8 @@ const dots = [
     <p class="caption">Each month is compared with the game's usual: the median of its previous {s.flag_lookback_months} months</p>
     <Equation
       label="Negative surge"
+      color={KIND_COLORS["Negative surge"]}
+      note={`What players call a review bomb: all three must hold. ${surges} events in the library.`}
       terms={[
         [`${s.surge_negative_ratio}×`, "usual negative reviews, at least"],
         [`${s.surge_extra_negatives}+`, "more negative reviews than usual"],
@@ -87,14 +66,18 @@ const dots = [
     />
     <Equation
       label="Score drop"
+      color={KIND_COLORS["Score drop"]}
+      note={`A sharp fall without that surge of negatives. ${events.length - surges} events in the library.`}
       terms={[
         [`${formatCount(s.drop_min_reviews)}+`, "reviews that month"],
         [`${s.drop_score_points} pts`, "below the usual score, at least"],
       ]}
     />
-    <p>
-      Launch months are never flagged, since a game needs 3 earlier months to compare with. Consecutive flagged months count as one event,
-      and counts are Steam's exact monthly totals, not samples.
-    </p>
+    <ul class="detect-notes">
+      <li><CalendarX /><span><b>Launch months are skipped.</b> Needs 3 earlier months to compare.</span></li>
+      <li><Layers /><span><b>Runs count once.</b> Back-to-back months merge.</span></li>
+      <li><Database /><span><b>Exact counts.</b> Steam's totals, not our samples.</span></li>
+    </ul>
+    <a class="detect-more" href="/faq/#flagged-events">Worked examples in the FAQ<ArrowRight /></a>
   </section>
 </Page>

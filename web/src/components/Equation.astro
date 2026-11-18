@@ -1,11 +1,11 @@
 ---
-// A rule written as an equation: a label, an equals sign, then terms joined by plus signs (and an optional result and note)
-const { label, terms, result, note, op = "+", wide = false } = Astro.props;
+// A rule written as an equation: a label (with an optional colour dot), an equals sign, then terms joined by plus signs (and an optional result and note)
+const { label, terms, result, note, color, op = "+", wide = false } = Astro.props;
 ---
 
 <div class:list={["equation", { wide }]}>
   <div class="eq-row">
-    {label && <div class="eq-label">{label}</div>}
+    {label && <div class="eq-label">{color && <i class="key-dot" style={`background: ${color}`}></i>}{label}</div>}
     {label && <div class="eq-op">=</div>}
     {terms.map(([value, caption], i) => (
       <Fragment>
