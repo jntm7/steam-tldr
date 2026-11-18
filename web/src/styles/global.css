@@ -483,10 +483,13 @@ main.pill-main { margin-left: 0; padding: 0; }
 .hero-card-meta { font-size: 0.8rem; line-height: 1.35; color: var(--muted); }
 .hero-card-meta div { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .hero-card-themes { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem; }
-.hero-themes-title { margin-bottom: 0.35rem; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.hero-themes-title { display: flex; align-items: center; gap: 0.35rem; margin-bottom: 0.35rem; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.hero-themes-title svg { flex: none; width: 0.85rem; height: 0.85rem; }
+.hero-title-note { margin-left: 0.15rem; font-weight: 400; letter-spacing: 0.04em; text-transform: none; }
 .hero-theme { margin-bottom: 0.45rem; }
 .hero-theme-label { display: flex; justify-content: space-between; gap: 0.5rem; font-size: 0.78rem; line-height: 1.3; }
 .hero-theme-label span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hero-theme-label svg { flex: none; width: 0.8rem; height: 0.8rem; margin-right: 0.35rem; vertical-align: -0.12em; color: var(--muted); }
 .hero-theme-label span:last-child { font-variant-numeric: tabular-nums; color: var(--muted); }
 .hero-bar { height: 6px; margin-top: 0.2rem; overflow: hidden; border-radius: 3px; background: color-mix(in srgb, var(--text) 10%, transparent); }
 .hero-bar div { height: 100%; border-radius: 3px; transform-origin: left; animation: bar-grow 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) both; }

@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { Pause, Play } from "lucide-react";
-import { CHART_COLOR, COMPLAINT_COLOR, formatCount, gameHref, monthName, scoreColor } from "../lib/games.js";
-import { capitalize } from "../lib/themes.js";
+import { ChartLine, Pause, Play, ThumbsDown, ThumbsUp } from "lucide-react";
+import { CHART_COLOR, COMPLAINT_COLOR, PRAISE_COLOR, formatCount, gameHref, monthName, scoreColor } from "../lib/games.js";
+import { capitalize, themeIcon } from "../lib/themes.js";
 
 // Score ring size and circumference
 const RING = 34;
@@ -19,17 +19,25 @@ function ScoreRing({ pct }) {
   );
 }
 
-// Theme rows with bars sized against the card's biggest theme
-function ThemeBars({ title, themes, color, scale }) {
+// A section label named and iconed like the game page heading it previews
+function CardTitle({ Icon, color, children }) {
+  return <div className="hero-themes-title"><Icon color={color} aria-hidden="true" />{children}</div>;
+}
+
+// Theme rows with the game page's theme icons and bars sized against the card's biggest theme
+function ThemeBars({ title, Icon, themes, color, scale }) {
   return (
     <div className="hero-themes">
-      <div className="hero-themes-title" style={{ color }}>{title}</div>
-      {themes.map(({ theme, pct }, i) => (
-        <div className="hero-theme" key={theme}>
-          <div className="hero-theme-label"><span>{capitalize(theme)}</span><span>{pct}%</span></div>
-          <div className="hero-bar"><div style={{ width: `${(100 * pct) / scale}%`, background: color, animationDelay: `${0.15 + i * 0.1}s` }} /></div>
-        </div>
-      ))}
+      <CardTitle Icon={Icon} color={color}>{title}</CardTitle>
+      {themes.map(({ theme, pct }, i) => {
+        const ThemeIcon = themeIcon(theme);
+        return (
+          <div className="hero-theme" key={theme}>
+            <div className="hero-theme-label"><span><ThemeIcon aria-hidden="true" />{capitalize(theme)}</span><span>{pct}%</span></div>
+            <div className="hero-bar"><div style={{ width: `${(100 * pct) / scale}%`, background: color, animationDelay: `${0.15 + i * 0.1}s` }} /></div>
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -73,11 +81,11 @@ export default function HeroReport({ cards }) {
           </div>
         </div>
         <div className="hero-card-themes">
-          <ThemeBars title="Players love" themes={card.praise} color={CHART_COLOR} scale={scale} />
-          <ThemeBars title="Players complain about" themes={card.complaints} color={COMPLAINT_COLOR} scale={scale} />
+          <ThemeBars title="Praise" Icon={ThumbsUp} themes={card.praise} color={PRAISE_COLOR} scale={scale} />
+          <ThemeBars title="Complaints" Icon={ThumbsDown} themes={card.complaints} color={COMPLAINT_COLOR} scale={scale} />
         </div>
         <div className="hero-card-trend">
-          <div className="hero-themes-title">Monthly % positive since {monthName(card.trendFrom)}</div>
+          <CardTitle Icon={ChartLine} color={PRAISE_COLOR}>Trends<span className="hero-title-note">monthly % positive since {monthName(card.trendFrom)}</span></CardTitle>
           <Sparkline values={card.trend} />
         </div>
         <a className="hero-card-link" href={gameHref(card.appid)}>Open the full report <span aria-hidden="true">→</span></a>
