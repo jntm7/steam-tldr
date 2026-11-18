@@ -514,12 +514,12 @@ main.pill-main { margin-left: 0; padding: 0; }
 .hero-card-pause:hover { background: color-mix(in srgb, var(--text) 16%, transparent); }
 
 /* Headline numbers under the hero buttons, split by thin dividers */
-.hero-stats { display: flex; flex-wrap: wrap; gap: 1rem 0; margin: 2rem 0 0; }
-.hero-stats > div { padding: 0 1.5rem; border-left: 1px solid var(--border); }
-.hero-stats > div:first-child { padding-left: 0; border-left: 0; }
+/* Three equal columns that always share one row; the first column's right padding matches the others' two sides, so every column's content is the same width */
+.hero-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 2rem 0 0; }
+.hero-stats > div { min-width: 0; padding: 0 1.25rem; border-left: 1px solid var(--border); container-type: inline-size; }
+.hero-stats > div:first-child { padding-left: 0; padding-right: 2.5rem; border-left: 0; }
 .hero-stats dt { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); }
-.hero-stats dd { margin: 0; font-size: clamp(1.4rem, 2vw, 1.75rem); font-weight: 700; line-height: 1.2; font-variant-numeric: tabular-nums; color: var(--accent-word); }
-.hero-stats > div { display: flex; flex-direction: column-reverse; justify-content: flex-end; }
+.hero-stats dd { margin: 0; font-size: min(1.75rem, 15cqi); font-weight: 700; line-height: 1.2; font-variant-numeric: tabular-nums; color: var(--accent-word); }
 
 /* Inner pages: a header band on the icon pattern, then the content with an optional sticky outline on the right */
 .page-hero { position: relative; padding: 7.5rem 0 2.5rem; overflow: clip; isolation: isolate; }
@@ -639,7 +639,8 @@ main.pill-main { margin-left: 0; padding: 0; }
   .hero-card-themes { grid-template-columns: minmax(0, 1fr); gap: 0.5rem; }
   .hero-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .hero-stats > div { padding: 0 0.6rem; }
-  .hero-stats dd { font-size: 1rem; }
+  .hero-stats > div:first-child { padding-right: 1.2rem; }
+  .hero-stats dd { font-size: min(1.1rem, 15cqi); }
   .hero-stats dt { font-size: 0.6rem; letter-spacing: 0.05em; }
   .site-logo { padding: 0.4rem 0.7rem; }
   .site-logo img { height: 1.7rem; }
@@ -934,21 +935,30 @@ kbd { padding: 0.1rem 0.4rem; border: 1px solid var(--border); border-radius: 0.
 .tone-labels b { display: block; margin-bottom: 0.15rem; font-family: var(--mono, ui-monospace, monospace); font-size: 0.72rem; font-weight: 400; letter-spacing: 0.06em; color: var(--text); }
 @media (max-width: 700px) { .equation.wide .eq-term { width: 100%; } .equation.wide .eq-row { flex-direction: column; align-items: stretch; } .equation.wide .eq-op { transform: rotate(90deg); align-self: flex-start; margin-left: 1rem; } }
 
-/* Hero stats: a small graphic under each number that animates on load (dots fill in, bars rise, the sample bar fills) */
-.stat-graphic { height: 3rem; margin: 0.55rem 0 0.35rem; align-content: start; }
+/* Hero stats: one same-sized box under each number, a graphic on top and a short caption below, that animates on load
+   (game icons and review icons pop in, the share bar fills) */
+.stat-graphic { display: flex; flex-direction: column; justify-content: flex-end; width: 100%; --stat-rows: 2; --stat-box: calc(var(--stat-rows) * 15px + (var(--stat-rows) - 1) * 3px); }
 .stat-graphic i { display: block; }
-.stat-graphic.dots { display: grid; grid-template-columns: repeat(25, minmax(0, 1fr)); gap: 2px; width: min(100%, 9.5rem); }
-.stat-graphic.dots i { aspect-ratio: 1; border-radius: 50%; background: var(--accent-word); opacity: 0.85; animation: dot-in 0.4s ease both; animation-delay: calc(0.4s + var(--i) * 8ms); }
-.stat-graphic.bars { display: flex; align-items: flex-end; gap: 2px; width: min(100%, 8rem); }
-.stat-graphic.bars i { flex: 1; height: calc(var(--h) * 100%); min-height: 3px; background: var(--accent-word); opacity: 0.85; transform-origin: bottom; animation: bar-up 0.8s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: calc(0.5s + var(--i) * 35ms); }
-.stat-graphic.share { display: flex; flex-direction: column; justify-content: flex-end; width: min(100%, 11.5rem); }
-.share-track { height: 11px; background: color-mix(in srgb, var(--text) 14%, transparent); }
+.stat-graphic > span { display: block; margin-top: 0.45rem; font-family: var(--mono, ui-monospace, monospace); font-size: 0.66rem; line-height: 1.2;
+  letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.icon-grid { flex: none; height: var(--stat-box); display: grid; grid-template-columns: repeat(auto-fill, 15px); grid-auto-rows: 15px; gap: 3px 4px;
+  justify-content: space-between; align-content: start; overflow: hidden; }
+.icon-grid svg { width: 15px; height: 15px; color: var(--accent-word); opacity: 0.85; animation: tile-in 0.35s ease both; animation-delay: calc(0.4s + var(--i) * 30ms); }
+.share-track { flex: none; height: var(--stat-box); border-radius: 2px; overflow: hidden; background: color-mix(in srgb, var(--text) 14%, transparent); }
 .share-track i { width: max(var(--share), 3px); height: 100%; background: var(--accent-word); transform-origin: left; animation: meter-fill 1.4s cubic-bezier(0.22, 1, 0.36, 1) 0.7s both; }
-.share span { display: block; margin-top: 0.45rem; font-family: var(--mono, ui-monospace, monospace); font-size: 0.66rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
-@keyframes dot-in { from { opacity: 0; transform: scale(0); } }
-@keyframes bar-up { from { transform: scaleY(0); } }
-@media (prefers-reduced-motion: reduce) { .stat-graphic i { animation: none !important; } }
-.hero-stats > div { display: flex; flex-direction: column-reverse; justify-content: flex-end; }
+@keyframes tile-in { from { opacity: 0; transform: scale(0.3); } }
+/* Graphics are a whole number of icon rows tall (2, or 3 on phones), so no row is cut off whatever the caption does */
+/* Phones: the three columns are narrow, so every caption gets room for two smaller lines and the graphics line up */
+@media (max-width: 760px) {
+  .stat-graphic { --stat-rows: 3; }
+  .stat-graphic > span { min-height: 2.4em; white-space: normal; font-size: 0.56rem; letter-spacing: 0.04em; }
+}
+@media (prefers-reduced-motion: reduce) { .stat-graphic i, .stat-graphic svg { animation: none !important; } }
+/* Number on top, its label right under it, then the graphic (the dl keeps the label first in the markup) */
+.hero-stats > div { display: flex; flex-direction: column; }
+.hero-stats dd { order: 1; }
+.hero-stats dt { order: 2; margin: 0.15rem 0 0.75rem; }
+.hero-stats .stat-graphic { order: 3; margin-top: auto; }
 
 /* Landing sections */
 .home-panel .feature { display: grid; grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.3fr); gap: 2rem 3rem; margin-top: 1.25rem; align-items: start; }

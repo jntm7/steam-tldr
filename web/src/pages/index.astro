@@ -1,5 +1,6 @@
 ---
-import { ChevronDown, CircleHelp, Flame, Gamepad2, Scale, Sparkles, TrendingDown, TrendingUp } from "lucide-react";
+import { Car, Castle, ChevronDown, CircleHelp, Crosshair, Flame, Gamepad2, Ghost, Joystick, Puzzle, Rocket, Scale, Sparkles, Swords,
+  TrendingDown, TrendingUp, Trophy } from "lucide-react";
 import Landing from "../layouts/Landing.astro";
 import HomeSection from "../components/HomeSection.astro";
 import HeroPattern from "../components/HeroPattern.astro";
@@ -11,6 +12,7 @@ import { games, settings, summaries } from "../lib/data.js";
 import { withWideBanner } from "../lib/images.js";
 import { heroCards } from "../lib/landing.js";
 import { formatCount, steamPct, tableRows } from "../lib/games.js";
+import { themeIcon } from "../lib/themes.js";
 
 // Section thresholds
 const TRENDING_MIN_REVIEWS = 500;
@@ -87,15 +89,22 @@ const sections = [
 
 // Hero stats
 const stats = [
-  ["Games analyzed", games.length, "dots"],
-  ["Reviews analyzed", sampledReviews, "bars"],
-  ["English reviews on Steam", steamReviews, "share"],
+  ["Games analyzed", games.length, "icons"],
+  ["Reviews analyzed", sampledReviews, "reviews"],
+  ["English Steam reviews", steamReviews, "share"],
 ];
 
 // Stat graphics
-const sampleSizes = games.map((game) => game.sampled_reviews).sort((a, b) => b - a);
-const bars = Array.from({ length: 24 }, (_, i) => sampleSizes[Math.floor((i * sampleSizes.length) / 24)] / sampleSizes[0]);
+// One icon per keyword theme, the same icons and order as the FAQ (16 themes fill two rows of 8 on desktop; narrower columns show the first rows)
+const themeNames = Object.keys(settings.themes ?? {});
+const reviewIcons = themeNames.map(themeIcon);
+const themeCount = themeNames.length;
 const shareOfSteam = sampledReviews / steamReviews;
+
+// A strip of mixed game icons, more than fit, so the box shows whole rows at any width; the caption counts Steam's genres
+const GAME_ICONS = [Gamepad2, Swords, Puzzle, Car, Crosshair, Ghost, Joystick, Castle, Rocket, Trophy];
+const gameIcons = Array.from({ length: 30 }, (_, i) => GAME_ICONS[i % GAME_ICONS.length]);
+const genreCount = new Set(games.flatMap((game) => game.genres ?? [])).size;
 
 // Hero report cards for a few games, each with its banner
 const cards = await Promise.all(heroCards(games, summaries).map(async (card) => ({ ...card, banner: (await withWideBanner(byAppid[card.appid])).wide })));
@@ -123,8 +132,18 @@ const cards = await Promise.all(heroCards(games, summaries).map(async (card) => 
           {stats.map(([label, value, kind]) => (
             <div>
               <dt>{label}</dt>
-              {kind === "dots" && <div class="stat-graphic dots" aria-hidden="true">{Array.from({ length: games.length }, (_, i) => <i style={`--i: ${i}`}></i>)}</div>}
-              {kind === "bars" && <div class="stat-graphic bars" aria-hidden="true">{bars.map((height, i) => <i style={`--h: ${height.toFixed(3)}; --i: ${i}`}></i>)}</div>}
+              {kind === "icons" && (
+                <div class="stat-graphic icons" aria-hidden="true">
+                  <div class="icon-grid">{gameIcons.map((Icon, i) => <Icon style={{ "--i": i }} />)}</div>
+                  <span>Across {genreCount} genres</span>
+                </div>
+              )}
+              {kind === "reviews" && (
+                <div class="stat-graphic icons" aria-hidden="true">
+                  <div class="icon-grid">{reviewIcons.map((Icon, i) => <Icon style={{ "--i": i }} />)}</div>
+                  <span>Sorted into {themeCount} themes</span>
+                </div>
+              )}
               {kind === "share" && (
                 <div class="stat-graphic share" aria-hidden="true">
                   <div class="share-track"><i style={`--share: ${(shareOfSteam * 100).toFixed(2)}%`}></i></div>
